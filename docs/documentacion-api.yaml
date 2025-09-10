@@ -5,9 +5,7 @@ info:
   description: Microservicio para gestionar el carrito de compras y las órdenes de PulgaShop.
   version: 1.0.0
   contact:
-    name: PulgaShop Team
-  license:
-    name: MIT
+    name: PulgaShop
 
 servers:
   - url: http://localhost:3000/api/v1
