@@ -1,4 +1,9 @@
+# 📦 Diagrama de secuencias
+
+<img width="1739" height="1791" alt="diagrama de secuencia ordenes y carrito" src="https://github.com/user-attachments/assets/a462deed-7ecf-49c2-85e3-c8c348439d3b" />
+
 # 📦 Documentación de la Base de Datos
+
 
 **📖 Diccionario de Datos**
 
