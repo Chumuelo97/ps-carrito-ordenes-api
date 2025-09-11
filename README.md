@@ -6,6 +6,8 @@
 
 
 **📖 Diccionario de Datos**
+![bd png](https://github.com/user-attachments/assets/3e4dc674-d036-4f8d-ad63-e3117a8cb4d3)
+
 
 ### Tabla: `orders`  
 | Campo         | Tipo          | Restricciones                          | Descripción                                                 |
