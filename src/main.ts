@@ -28,20 +28,24 @@ async function bootstrap() {
   const document = yaml.load(yamlContent) as any;
 
   // Configuración adicional de Swagger
-  const config = new DocumentBuilder()
-    .setTitle(document.info.title)
-    .setDescription(document.info.description)
-    .setVersion(document.info.version)
-    .setContact(document.info.contact.name, '', '')
-    .setLicense(document.info.license.name, '')
-    .addServer(document.servers[0].url, document.servers[0].description)
-    // Agregamos los tags definidos en el YAML
-    .addTag('Carrito', 'Operaciones relacionadas con el carrito de compras')
-    .addTag(
-      'Órdenes',
-      'Operaciones relacionadas con la creación y visualización de órdenes',
-    )
-    .build();
+    const config = new DocumentBuilder()
+      .setTitle(document.info.title)
+      .setDescription(document.info.description)
+      .setVersion(document.info.version)
+      .setContact(document.info.contact?.name || '', '', '');
+
+    if (document.info.license && document.info.license.name) {
+      config.setLicense(document.info.license.name, '');
+    }
+
+    config
+      .addServer(document.servers[0].url, document.servers[0].description)
+      .addTag('Carrito', 'Operaciones relacionadas con el carrito de compras')
+      .addTag(
+        'Órdenes',
+        'Operaciones relacionadas con la creación y visualización de órdenes',
+      )
+      .build();
 
   // Creamos la documentación Swagger
   SwaggerModule.setup('api/v1/docs', app, document);
