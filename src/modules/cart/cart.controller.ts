@@ -2,7 +2,9 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
+  Param,
   HttpCode,
   HttpStatus,
   Logger,
@@ -30,6 +32,20 @@ export class CartController {
       message: 'Ítem agregado al carrito exitosamente.',
       data: updatedCart,
     };
+  }
+
+  @Get(':userId')
+  @HttpCode(HttpStatus.OK)
+  async getCart(@Param('userId') userId: string) {
+    const cart = await this.cartService.getCartByUserId(userId);
+    return { message: 'Carrito obtenido exitosamente.', data: cart };
+  }
+
+  @Delete(':userId')
+  @HttpCode(HttpStatus.OK)
+  async clearCart(@Param('userId') userId: string) {
+    await this.cartService.clearCart(userId);
+    return { message: `Carrito de usuario ${userId} vaciado.` };
   }
   /*@Get()
   @HttpCode(HttpStatus.OK)
