@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param } from '@nestjs/common';
+import { Controller, Post, Get, Param, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { OrdenesService } from './ordenes.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -23,8 +23,21 @@ export class OrdenesController {
 
   @Get('historial/:compradorId')
   @ApiOperation({ summary: 'Obtener historial de órdenes de un comprador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Historial de órdenes obtenido exitosamente',
+  })
   async obtenerHistorial(@Param('compradorId') compradorId: string) {
-    return this.ordenesService.obtenerHistorialComprador(compradorId);
+    try {
+      return await this.ordenesService.obtenerHistorialComprador(compradorId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new InternalServerErrorException(
+        `Error al obtener el historial: ${error.message}`,
+      );
+    }
   }
 
   @Get('estadisticas/producto/:productoId')

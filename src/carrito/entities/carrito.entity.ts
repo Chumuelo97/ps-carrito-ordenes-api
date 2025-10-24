@@ -3,12 +3,16 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity('carrito')
 export class CarritoEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column()
+  @Column('varchar', { length: 255 })
   compradorId: string;
 
-  @Column('decimal')
+  /*Falta id_producto, agregarlo a la base de datos 
+  @Column('int')
+  productoId: number;
+  */
+  @Column('decimal', { precision: 10, scale: 0 })
   total: number;
 }

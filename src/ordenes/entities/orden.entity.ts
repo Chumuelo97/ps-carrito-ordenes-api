@@ -1,36 +1,31 @@
+// src/ordenes/entities/orden.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { CarritoEntity } from '../../carrito/entities/carrito.entity';
 
 @Entity('ordenes')
 export class OrdenEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => CarritoEntity)
-  carrito: CarritoEntity;
+  @Column('int')
+  carritoId: number; 
 
-  @Column()
-  carritoId: string;
-
-  @Column()
+  @Column({ length: 255 })
   compradorId: string;
 
-  @Column({
-    type: 'enum',
+  @Column('enum', {
     enum: ['PENDIENTE', 'PAGADO', 'CANCELADO'],
     default: 'PENDIENTE',
   })
   estadoPago: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   fechaCreacion: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   total: number;
 }
