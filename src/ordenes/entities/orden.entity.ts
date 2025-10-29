@@ -8,13 +8,13 @@ import {
 
 @Entity('ordenes')
 export class OrdenEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column('int')
-  carritoId: number; 
+  carritoId: number;
 
-  @Column({ length: 255 })
+  @Column('varchar', { length: 255 })
   compradorId: string;
 
   @Column('enum', {
@@ -22,10 +22,10 @@ export class OrdenEntity {
     default: 'PENDIENTE',
   })
   estadoPago: string;
-
-  @CreateDateColumn({ type: 'datetime' })
-  fechaCreacion: Date;
-
+  
   @Column('decimal', { precision: 10, scale: 2 })
   total: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  fechaCreacion: Date;
 }
