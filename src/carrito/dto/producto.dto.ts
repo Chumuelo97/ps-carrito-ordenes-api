@@ -4,4 +4,6 @@ export class ProductoDto {
   description: string;
   price: number;
   quantity: number; // Stock disponible
+  category: string;
+  imageUrl: string;
 }

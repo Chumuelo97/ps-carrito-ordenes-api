@@ -9,7 +9,7 @@ import * as yaml from 'js-yaml';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
-
+  app.enableCors();
   // Prefijo global para todas las rutas
   app.setGlobalPrefix('api/v1');
 
@@ -50,7 +50,7 @@ async function bootstrap() {
   // Creamos la documentación Swagger
   SwaggerModule.setup('api/v1/docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
   await app.listen(port);
   logger.log(`🚀 Microservicio de Carrito corriendo en el puerto ${port}`);
   logger.log(

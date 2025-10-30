@@ -6,6 +6,7 @@ import {
   CreateCarritoDto,
   agregarProductosAlCarritoDto,
   EliminarProductoDto,
+  CarritoDetalladoDto,
 } from './dto/carrito.dto';
 import { CarritoEntity } from './entities/carrito.entity';
 
@@ -32,11 +33,11 @@ export class CarritoController {
   @ApiResponse({
     status: 201,
     description: 'Producto agregado exitosamente',
-    type: CarritoEntity,
+    type: CarritoDetalladoDto,
   })
   async agregarProducto(
     @Body() addToCartDto: agregarProductosAlCarritoDto,
-  ): Promise<CarritoEntity> {
+  ): Promise<CarritoDetalladoDto> {
     return this.carritoService.agregarProducto(addToCartDto);
   }
 
@@ -45,7 +46,7 @@ export class CarritoController {
   @ApiResponse({
     status: 200,
     description: 'Carrito encontrado',
-    type: CarritoEntity,
+    type: CarritoDetalladoDto,
   })
   findOne(@Param('id') id: string) {
     return this.carritoService.findOne(+id);
@@ -56,11 +57,11 @@ export class CarritoController {
   @ApiResponse({
     status: 200,
     description: 'Producto eliminado exitosamente del carrito',
-    type: CarritoEntity,
+    type: CarritoDetalladoDto,
   })
   async eliminarProductoDelCarrito(
     @Body() eliminarProductoDto: EliminarProductoDto,
-  ): Promise<CarritoEntity> {
+  ): Promise<CarritoDetalladoDto> {
     return this.carritoService.eliminarProducto(eliminarProductoDto);
   }
 }
