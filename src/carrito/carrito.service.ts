@@ -10,11 +10,9 @@ import { CarritoEntity } from './entities/carrito.entity';
 import { CarritoItemEntity } from './entities/carrito-item.entity';
 import { ProductoDto } from './dto/producto.dto';
 import {
-  agregarProductosAlCarritoDto,
-  CreateCarritoDto,
-  EliminarProductoDto,
-  CarritoDetalladoDto,
-  CarritoItemDetalladoDto,
+  agregarProductosDto,
+  CarritoItemDto,
+  CrearCarritoDto,
 } from './dto/carrito.dto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -35,9 +33,12 @@ export class CarritoService {
         'utf8',
       );
       const productos = JSON.parse(data);
+      if (!Array.isArray(productos)) {
+        throw new Error('El archivo de productos no contiene un array válido.');
+      }
       return productos;
     } catch (error) {
-      console.error('Error al leer el archivo de productos:', error);
+      console.error('Error al leer el archivo de productos:', error.message);
       return [];
     }
   }
@@ -46,8 +47,7 @@ export class CarritoService {
     productId: number,
   ): Promise<ProductoDto | undefined> {
     const productos = await this.leerProductosDesdeArchivo();
-    const producto = productos.find((p) => p.id === productId);
-    return producto;
+    return productos.find((p) => p.id === productId);
   }
 
   /**
@@ -82,11 +82,7 @@ export class CarritoService {
     };
   }
 
-  /**
-   * ---- ¡MÉTODO MODIFICADO! ----
-   * Ahora utiliza el helper _hydrateCarrito para devolver los datos completos.
-   */
-  async findOne(id: number): Promise<CarritoDetalladoDto> {
+  async findOne(id: number): Promise<CarritoItemDto> {
     const carrito = await this.carritoRepository.findOne({
       where: { id },
       relations: ['items'],
@@ -98,16 +94,29 @@ export class CarritoService {
     return this._hydrateCarrito(carrito);
   }
 
-  async crearCarrito(
-    createCarritoDto: CreateCarritoDto,
-  ): Promise<CarritoEntity> {
-    const carrito = this.carritoRepository.create({
-      compradorId: createCarritoDto.compradorId,
-      total: 0,
-      items: [],
+  async crearCarrito(crearCarritoDto: CrearCarritoDto): Promise<CarritoEntity> {
+    const { compradorId } = crearCarritoDto;
+
+    // Buscar si ya existe un carrito para el comprador
+    let carrito = await this.carritoRepository.findOne({
+      where: { compradorId },
+      relations: ['items'],
     });
 
-    return this.carritoRepository.save(carrito);
+    if (!carrito) {
+      // Si no existe, crear un nuevo carrito vacío
+      carrito = this.carritoRepository.create({
+        compradorId,
+        total: 0,
+      });
+      carrito.items = []; // Inicializamos los items como un array vacío
+      carrito = await this.carritoRepository.save(carrito);
+    }
+
+    // Hidratar el carrito con los productos asociados
+    carrito = await this._hydrateCarrito(carrito);
+
+    return carrito as CarritoEntity;
   }
 
   /**
@@ -115,69 +124,60 @@ export class CarritoService {
    * Ahora utiliza el helper _hydrateCarrito para devolver los datos completos tras agregar un producto.
    */
   async agregarProducto(
-    addToCartDto: agregarProductosAlCarritoDto,
-  ): Promise<CarritoDetalladoDto> {
-    const producto = await this.findProductById(addToCartDto.productoId);
+    agregarAlCarro: agregarProductosDto,
+  ): Promise<CarritoEntity> {
+    const producto = await this.findProductById(agregarAlCarro.productoId);
 
     if (!producto) {
       throw new NotFoundException('Producto no encontrado');
     }
 
-    if (producto.quantity < addToCartDto.cantidad) {
+    if (producto.quantity < agregarAlCarro.cantidad) {
       throw new BadRequestException('Stock insuficiente');
     }
 
     let carrito = await this.carritoRepository.findOne({
-      where: { compradorId: addToCartDto.compradorId },
+      where: { compradorId: agregarAlCarro.compradorId },
       relations: ['items'],
     });
 
     if (!carrito) {
       carrito = await this.crearCarrito({
-        compradorId: addToCartDto.compradorId,
-        items: [],
+        compradorId: agregarAlCarro.compradorId,
+        //items: []
       });
     }
 
     let item = carrito.items?.find(
-      (i) => i.productoId === addToCartDto.productoId,
+      (i) => i.productoId === agregarAlCarro.productoId,
     );
 
     if (item) {
-      item.cantidad += addToCartDto.cantidad;
-      await this.carritoItemRepository.save(item); // Guardamos el item actualizado
+      item.cantidad += agregarAlCarro.cantidad;
+      await this.carritoItemRepository.save(item);
     } else {
       const nuevoItem = this.carritoItemRepository.create({
-        productoId: addToCartDto.productoId,
-        cantidad: addToCartDto.cantidad,
-        precio: producto.price, // Usamos el precio del archivo de productos
+        productoId: agregarAlCarro.productoId,
+        cantidad: agregarAlCarro.cantidad,
+        precio: producto.price,
         carrito: carrito,
       });
       await this.carritoItemRepository.save(nuevoItem);
-      // Recargamos el carrito para obtener el item recién creado con su ID de la BD y sus relaciones
-      const carritoRecargado = await this.carritoRepository.findOne({
-        where: { id: carrito.id },
-        relations: ['items'],
-      });
-      carrito = carritoRecargado!; // Usamos '!' porque sabemos que el carrito existe
+      carrito.items.push(nuevoItem);
     }
 
-    // Recalculamos el total
     carrito.total = carrito.items.reduce(
       (sum, currentItem) => sum + currentItem.precio * currentItem.cantidad,
       0,
     );
 
-    const carritoGuardado = await this.carritoRepository.save(carrito);
-
-    // Devolvemos el carrito con los items "hidratados"
-    return this._hydrateCarrito(carritoGuardado);
+    return this.carritoRepository.save(carrito);
   }
-
-  /**
+}
+/**
    * ---- ¡MÉTODO MODIFICADO! ----
    * Ahora utiliza el helper _hydrateCarrito para devolver los datos completos tras eliminar un producto.
-   */
+   
   async eliminarProducto(
     eliminarProductoDto: EliminarProductoDto,
   ): Promise<CarritoDetalladoDto> {
@@ -216,7 +216,7 @@ export class CarritoService {
     // Devolvemos el carrito con los items "hidratados"
     return this._hydrateCarrito(carritoGuardado);
   }
-}
+}*/
 
 // src/carrito/carrito.service.ts
 /*import {
@@ -387,8 +387,8 @@ export class CarritoService {
     // 5. Guardar y devolver el carrito actualizado
     return this.carritoRepository.save(carrito);
   }
-}*/
-/*
+}
+
 servicio de mentira con el detalle de productos:
 -id-producto
 -nombre

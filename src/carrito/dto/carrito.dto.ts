@@ -1,8 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsArray, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ProductoDto } from './producto.dto';
 
+export class agregarProductosDto {
+  @ApiProperty()
+  @IsString()
+  compradorId: string;
+  @ApiProperty()
+  @IsNumber()
+  productoId: number;
+  @ApiProperty()
+  @IsNumber()
+  cantidad: number;
+}
+
+export class CrearCarritoDto {
+  @ApiProperty()
+  @IsString()
+  compradorId: string;
+}
+
 export class CarritoItemDto {
+  @ApiProperty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty()
+  @IsString()
+  @ValidateNested({ each: true })
+  @Type(() => agregarProductosDto)
+  compradorId: string;
+
   @ApiProperty()
   @IsNumber()
   productoId: number;
@@ -14,60 +43,24 @@ export class CarritoItemDto {
   @ApiProperty()
   @IsNumber()
   precio: number;
-}
 
-export class CreateCarritoDto {
   @ApiProperty()
-  @IsString()
-  compradorId: string;
+  @IsNumber()
+  carritoId: number;
 
-  @ApiProperty({ type: [CarritoItemDto] })
+  @ApiProperty({ type: [ProductoDto] })
   @IsOptional()
-  items: CarritoItemDto[];
+  items: ProductoDto[];
 }
 
-export class agregarProductosAlCarritoDto {
-  @ApiProperty()
-  @IsNumber()
-  productoId: number;
 
-  @ApiProperty()
-  @IsNumber()
-  cantidad: number;
 
-  @ApiProperty()
-  @IsString()
-  compradorId: string;
-}
 
-export class EliminarProductoDto {
-  @ApiProperty()
-  @IsString()
-  compradorId: string;
-
-  @ApiProperty()
-  @IsNumber()
-  productoId: number;
-}
-
-export class CrearCarritoSimuladoDto {
-  @ApiProperty()
-  @IsString()
-  compradorId: string;
-
-  @ApiProperty({
-    description: 'Lista de IDs de productos para agregar al carrito simulado',
-    type: [Number],
-  })
-  @IsArray()
-  productoIds: number[];
-}
 
 /**
- * ---- ¡NUEVO DTO! ----
  * Representa un item del carrito con todos los detalles del producto.
  * Hereda las propiedades de ProductoDto y agrega las del carrito.
- */
+ 
 export class CarritoItemDetalladoDto extends ProductoDto {
   @ApiProperty({
     description: 'ID del item en el carrito',
@@ -79,22 +72,4 @@ export class CarritoItemDetalladoDto extends ProductoDto {
   @ApiProperty({ description: 'ID del producto' })
   @IsNumber()
   productoId: number;
-}
-
-/**
- * ---- ¡NUEVO DTO! ----
- * Representa la respuesta completa y detallada del carrito.
- */
-export class CarritoDetalladoDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  compradorId: string;
-
-  @ApiProperty()
-  total: number;
-
-  @ApiProperty({ type: [CarritoItemDetalladoDto] })
-  items: CarritoItemDetalladoDto[];
-}
+}*/

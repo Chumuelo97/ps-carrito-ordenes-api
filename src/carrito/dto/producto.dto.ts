@@ -3,7 +3,7 @@ export class ProductoDto {
   name: string;
   description: string;
   price: number;
-  quantity: number; // Stock disponible
+  quantity: number; // cantifa
   category: string;
   imageUrl: string;
 }

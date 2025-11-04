@@ -3,19 +3,33 @@ import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  CreateCarritoDto,
-  agregarProductosAlCarritoDto,
-  EliminarProductoDto,
-  CarritoDetalladoDto,
+  CarritoItemDto,
+  agregarProductosDto,
+  CrearCarritoDto,
 } from './dto/carrito.dto';
 import { CarritoEntity } from './entities/carrito.entity';
+import { log } from 'console';
 
 @ApiTags('carrito')
 @Controller('carrito')
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
 
-  @Post()
+  @Post('agregarProductos')
+  @ApiOperation({ summary: 'Agregar producto al carrito' })
+  @ApiResponse({
+    status: 201,
+    description: 'Producto agregado exitosamente',
+    type: CarritoEntity,
+  })
+  async agregarProducto(
+    @Body() agregarAlCarrito: agregarProductosDto,
+  ): Promise<CarritoEntity> {
+    log('Agregar al carrito DTO:', agregarAlCarrito);
+    return this.carritoService.agregarProducto(agregarAlCarrito);
+  }
+
+  @Post('crearCarrito')
   @ApiOperation({ summary: 'Crear un nuevo carrito' })
   @ApiResponse({
     status: 201,
@@ -23,45 +37,31 @@ export class CarritoController {
     type: CarritoEntity,
   })
   async crearCarrito(
-    @Body() createCarritoDto: CreateCarritoDto,
+    @Body() crearCarritoDto: CrearCarritoDto,
   ): Promise<CarritoEntity> {
-    return this.carritoService.crearCarrito(createCarritoDto);
+    return this.carritoService.crearCarrito(crearCarritoDto);
   }
 
-  @Post('agregar')
-  @ApiOperation({ summary: 'Agregar producto al carrito' })
-  @ApiResponse({
-    status: 201,
-    description: 'Producto agregado exitosamente',
-    type: CarritoDetalladoDto,
-  })
-  async agregarProducto(
-    @Body() addToCartDto: agregarProductosAlCarritoDto,
-  ): Promise<CarritoDetalladoDto> {
-    return this.carritoService.agregarProducto(addToCartDto);
-  }
-
-  @Get(':id')
+  @Get('obtenerCarro/:id')
   @ApiOperation({ summary: 'Obtener un carrito por ID' })
   @ApiResponse({
     status: 200,
     description: 'Carrito encontrado',
-    type: CarritoDetalladoDto,
+    type: CarritoItemDto,
   })
   findOne(@Param('id') id: string) {
     return this.carritoService.findOne(+id);
   }
 
-  @Delete('eliminar')
+  /*@Delete('eliminar')
   @ApiOperation({ summary: 'Eliminar un producto del carrito de un comprador' })
   @ApiResponse({
     status: 200,
     description: 'Producto eliminado exitosamente del carrito',
-    type: CarritoDetalladoDto,
+    type: CarritoItemDto,
   })
   async eliminarProductoDelCarrito(
-    @Body() eliminarProductoDto: EliminarProductoDto,
-  ): Promise<CarritoDetalladoDto> {
+    @Body() eliminarProductoDto: CarritoItemDto): Promise<CarritoItemDto> {
     return this.carritoService.eliminarProducto(eliminarProductoDto);
-  }
+  }*/
 }
