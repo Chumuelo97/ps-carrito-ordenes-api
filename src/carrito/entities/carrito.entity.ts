@@ -1,6 +1,15 @@
 // src/carrito/entities/carrito.entity.ts (Modificado)
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { CarritoItemEntity } from './carrito-item.entity'; // <--- Importar la nueva entidad
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
+// Note: we store items as JSON inside the carrito table, to keep the API
+// working only with `CarritoEntity` and avoid a separate carrito_items table.
 
 @Entity('carrito')
 export class CarritoEntity {
@@ -8,12 +17,26 @@ export class CarritoEntity {
   id: number;
 
   @Column('varchar', { length: 255 })
+  @Index()
   compradorId: string;
 
-  @Column('decimal', { precision: 10, scale: 0 })
+  // Usar 2 decimales para representar montos en moneda (ej: pesos)
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
   total: number;
 
   // Un carrito tiene MUCHOS items.
-  @OneToMany(() => CarritoItemEntity, (item) => item.carrito, { cascade: true })
-  items: CarritoItemEntity[]; // <--- Ahora es un array de la entidad real
+  // cascade: true permite persistir nuevos items al guardar el carrito.
+  // orphanedRowAction: 'delete' eliminará filas huérfanas cuando se quiten del array y se guarde el carrito (TypeORM v0.3+).
+  // Guardamos los items directamente como JSON en la columna `items`.
+  // Esto permite que el servicio y el controlador trabajen solo con
+  // `CarritoEntity` y arrays/plains objects.
+  @Column('simple-json', { nullable: true })
+  items: Array<{ productoId: number; cantidad: number; precio: number; carritoItemId?: number }>;
+
+  // Timestamps útiles para depuración y para elegir el carrito "más reciente"
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  updatedAt: Date;
 }

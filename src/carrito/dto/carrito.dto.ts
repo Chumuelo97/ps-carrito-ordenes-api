@@ -1,8 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsArray, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsArray,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductoDto } from './producto.dto';
-
+// Productos DTO 
 export class agregarProductosDto {
   @ApiProperty()
   @IsString()
@@ -15,6 +21,22 @@ export class agregarProductosDto {
   cantidad: number;
 }
 
+// DTOs para operaciones de eliminación
+export class EliminarProductoDto {
+  @ApiProperty({ description: 'Identificador del comprador' })
+  @IsString()
+  compradorId: string;
+
+  @ApiProperty({ description: 'Identificador del producto a eliminar' })
+  @IsNumber()
+  productoId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  cantidad: number;
+}
+
+// carrito DTO
 export class CrearCarritoDto {
   @ApiProperty()
   @IsString()
@@ -53,23 +75,41 @@ export class CarritoItemDto {
   items: ProductoDto[];
 }
 
-
-
-
-
-/**
- * Representa un item del carrito con todos los detalles del producto.
- * Hereda las propiedades de ProductoDto y agrega las del carrito.
- 
-export class CarritoItemDetalladoDto extends ProductoDto {
+export class EliminarCarritoDto {
   @ApiProperty({
-    description: 'ID del item en el carrito',
-    name: 'carritoItemId',
+    description: 'Identificador del comprador cuyo carrito se eliminará',
   })
-  @IsNumber()
-  carritoItemId: number; // Este id es el de CarritoItemEntity, renombramos para evitar conflicto.
+  @IsString()
+  compradorId: string;
 
-  @ApiProperty({ description: 'ID del producto' })
+  @ApiProperty({
+    description: 'Identificador del carrito (opcional)',
+    required: false,
+  })
+  @IsOptional()
   @IsNumber()
-  productoId: number;
-}*/
+  carritoId: number;
+}
+
+export class CarritoDetalladoDto {
+  @ApiProperty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty()
+  @IsString()
+  compradorId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  total: number;
+
+  @ApiProperty({ type: [ProductoDto] })
+  @IsOptional()
+  items: ProductoDto[];
+}
+
+
+
+
+
