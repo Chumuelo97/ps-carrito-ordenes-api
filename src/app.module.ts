@@ -1,18 +1,26 @@
 import { Module } from '@nestjs/common';
-import { CartModule } from './modules/cart/cart.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CarritoModule } from './carrito/carrito.module';
 import { ConfigModule } from '@nestjs/config';
+import { OrdenesModule } from './ordenes/ordenes.module';
 
 @Module({
   imports: [
-    // Módulo para gestionar variables de entorno (.env)
-    ConfigModule.forRoot({
-      isGlobal: true,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT ?? '3306', 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
     }),
-    // Importamos el módulo principal de nuestra lógica de negocio
-    CartModule,
+    CarritoModule,
+    OrdenesModule,
   ],
   controllers: [],
   providers: [],
-
 })
 export class AppModule {}
