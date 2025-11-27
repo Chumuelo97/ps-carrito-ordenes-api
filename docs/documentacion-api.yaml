@@ -6,7 +6,7 @@ info:
   contact:
     name: Equipo PulgaShop
 servers:
-  - url: api/v1/docs
+  - url: /api/v1
     description: Prefijo global configurado en la aplicación NestJS
 tags:
   - name: carrito
