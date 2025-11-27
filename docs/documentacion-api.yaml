@@ -1,324 +1,455 @@
 openapi: 3.0.0
-
 info:
   title: API de Carrito y Órdenes
-  description: Microservicio para gestionar el carrito de compras y las órdenes de PulgaShop.
+  description: Microservicio NestJS para gestionar carritos de compra y órdenes en PulgaShop.
   version: 1.0.0
   contact:
-    name: PulgaShop
-
+    name: Equipo PulgaShop
 servers:
-  - url: /api/v1
-    description: Servidor Actual
-
+  - url: api/v1/docs
+    description: Prefijo global configurado en la aplicación NestJS
 tags:
-  - name: Carrito
-    description: Operaciones relacionadas con el carrito de compras
-    x-nestjs-controller: CarritoController
-  - name: Órdenes
-    description: Operaciones relacionadas con la creación y visualización de órdenes
-    x-nestjs-controller: OrdenesController
-
+  - name: carrito
+    description: Endpoints para crear, modificar y consultar carritos
+  - name: ordenes
+    description: Endpoints para checkout, historial y estadísticas de órdenes
 paths:
-  /carrito:
+  /carrito/crearCarrito:
     post:
-      operationId: addToCart
-      summary: Agregar un producto al carrito
-      description: Agrega un ítem con una cantidad específica al carrito del usuario autenticado
       tags:
-        - Carrito
+        - carrito
+      summary: Crear un carrito para un comprador
+      operationId: crearCarrito
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddItemRequest'
+              $ref: '#/components/schemas/CrearCarritoRequest'
       responses:
         '201':
-          description: Producto agregado exitosamente
+          description: Carrito creado o recuperado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CartItemResponse'
-        '409':
-          description: La cantidad solicitada supera el stock disponible
+                $ref: '#/components/schemas/CarritoDetallado'
+        '400':
+          description: Datos inválidos
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /carrito/{id_producto}:
-    patch:
-      operationId: updateCartItem
-      summary: Actualizar la cantidad de un ítem en el carrito
-      description: Modifica la cantidad de un ítem que ya se encuentra en el carrito. Si la cantidad es 0, el ítem es eliminado
+  /carrito/eliminarCarrito:
+    delete:
       tags:
-        - Carrito
-      parameters:
-        - name: id_producto
-          in: path
-          required: true
-          description: ID del producto a actualizar
-          schema:
-            type: integer
+        - carrito
+      summary: Eliminar un carrito
+      description: Permite eliminar por completo un carrito. Si no se entrega carritoId, se elimina el último carrito del comprador.
+      operationId: eliminarCarrito
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateItemRequest'
+              $ref: '#/components/schemas/EliminarCarritoRequest'
       responses:
         '200':
-          description: Cantidad actualizada correctamente
+          description: Carrito eliminado (se devuelve el snapshot del carrito)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CartResponse'
-        '409':
-          description: La nueva cantidad supera el stock disponible
+                $ref: '#/components/schemas/CarritoDetallado'
+        '404':
+          description: Carrito no encontrado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      operationId: removeFromCart
-      summary: Eliminar un ítem del carrito
-      description: Quita un ítem específico del carrito del usuario
+  /carrito/obtenerCarro/{id}:
+    get:
       tags:
-        - Carrito
+        - carrito
+      summary: Obtener un carrito por ID
+      operationId: obtenerCarritoPorId
       parameters:
-        - name: id_producto
+        - name: id
           in: path
+          description: Identificador del carrito
           required: true
-          description: ID del producto a eliminar
           schema:
             type: integer
+            minimum: 1
       responses:
-        '204':
-          description: Eliminación exitosa
+        '200':
+          description: Carrito encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
         '404':
-          description: El producto no se encuentra en el carrito del usuario
+          description: Carrito inexistente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /ordenes/crear:
+  /carrito/agregarProductos:
     post:
-      operationId: createOrder
-      summary: Crear una orden de compra (Checkout)
-      description: Inicia el proceso de checkout, creando una orden con los ítems del carrito y vaciándolo posteriormente
       tags:
-        - Órdenes
+        - carrito
+      summary: Agregar o incrementar un producto en el carrito
+      operationId: agregarProducto
       requestBody:
-        description: Objeto con la información necesaria para el envío
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateOrderRequest'
+              $ref: '#/components/schemas/AgregarProductoRequest'
       responses:
         '201':
-          description: La orden fue creada exitosamente
+          description: Carrito actualizado con el producto agregado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateOrderResponse'
-
-  /ordenes/mis-ordenes:
-    get:
-      operationId: getMyOrders
-      summary: Obtener el historial de órdenes del usuario
-      description: Devuelve un listado paginado de todas las órdenes realizadas por el usuario autenticado
+                $ref: '#/components/schemas/CarritoDetallado'
+        '400':
+          description: Stock insuficiente o payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /carrito/eliminarProducto:
+    delete:
       tags:
-        - Órdenes
+        - carrito
+      summary: Eliminar o decrementar un producto del carrito
+      operationId: eliminarProducto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminarProductoRequest'
+      responses:
+        '200':
+          description: Carrito actualizado tras eliminar el producto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
+        '400':
+          description: Cantidad inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Carrito o producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ordenes/checkout/{carritoId}:
+    post:
+      tags:
+        - ordenes
+      summary: Crear una orden a partir de un carrito
+      operationId: checkout
       parameters:
-        - name: estado
-          in: query
-          required: false
-          description: Filtra las órdenes por su estado (ej. 'enviada')
+        - name: carritoId
+          in: path
+          required: true
+          description: Identificador del carrito que se desea cerrar
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '201':
+          description: Orden creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orden'
+        '500':
+          description: Error al crear la orden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /ordenes/estado-pago/{carritoId}:
+    get:
+      tags:
+        - ordenes
+      summary: Consultar el estado de pago asociado a un carrito
+      operationId: obtenerEstadoPago
+      parameters:
+        - name: carritoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Estado de pago actual o NO_EXISTE si el carrito no posee orden vinculada
+          content:
+            application/json:
+              schema:
+                type: string
+                example: PENDIENTE
+  /ordenes/historial/{compradorId}:
+    get:
+      tags:
+        - ordenes
+      summary: Obtener historial de órdenes por comprador
+      operationId: obtenerHistorialOrdenes
+      parameters:
+        - name: compradorId
+          in: path
+          description: Identificador del comprador
+          required: true
           schema:
             type: string
-        - name: pagina
-          in: query
-          required: false
-          description: Número de página para la paginación
-          schema:
-            type: integer
-            default: 1
       responses:
         '200':
-          description: Operación exitosa
+          description: Historial ordenado descendentemente por fecha de creación
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/OrderSummary'
-
-  /ordenes/{id_orden}:
-    get:
-      operationId: getOrderById
-      summary: Obtener el detalle de una orden específica
-      description: Devuelve la información completa de una orden, incluyendo la lista de productos (ítems) que la componen
-      tags:
-        - Órdenes
-      parameters:
-        - name: id_orden
-          in: path
-          required: true
-          description: ID de la orden a consultar
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Operación exitosa
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetail'
+                  $ref: '#/components/schemas/Orden'
         '404':
-          description: La orden con el ID especificado no fue encontrada
+          description: El comprador no posee órdenes registradas
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
+  /ordenes/estadisticas/producto/{productoId}:
+    get:
+      tags:
+        - ordenes
+      summary: Obtener estadísticas de órdenes asociadas a un producto
+      operationId: obtenerEstadisticasProducto
+      parameters:
+        - name: productoId
+          in: path
+          description: Identificador del producto
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Estadísticas calculadas desde las órdenes y carritos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadisticasProducto'
 components:
   schemas:
-    AddItemRequest:
+    ProductoDetalle:
       type: object
-      description: DTO para agregar un item al carrito
+      description: Información de catálogo del producto cargada desde productos.txt
       properties:
-        producto_id:
+        id:
           type: integer
-          description: ID del producto a agregar al carrito
-          example: 123
-        cantidad:
-          type: integer
-          description: Cantidad del producto a agregar
-          example: 2
-          minimum: 1
-      required:
-        - producto_id
-        - cantidad
-
-    UpdateItemRequest:
-      type: object
-      description: DTO para actualizar la cantidad de un item en el carrito
-      properties:
-        cantidad:
-          type: integer
-          description: Nueva cantidad del producto
-          example: 3
-          minimum: 0
-      required:
-        - cantidad
-
-    CartItemResponse:
-      type: object
-      description: Respuesta con la información de un item en el carrito
-      properties:
-        id_producto:
-          type: integer
-          description: ID del producto
-          example: 123
-        cantidad:
-          type: integer
-          description: Cantidad del producto
-          example: 2
-        subtotal:
+          example: 101
+        name:
+          type: string
+          example: Collar luminiscente
+        description:
+          type: string
+          example: Collar reflectante para mascotas nocturnas
+        price:
           type: number
           format: float
-          description: Subtotal del item (precio * cantidad)
-          example: 99.98
-
-    CartResponse:
+          example: 19.99
+        quantity:
+          type: integer
+          description: Stock disponible en el catálogo
+          example: 50
+        category:
+          type: string
+          example: accesorios
+        imageUrl:
+          type: string
+          format: uri
+          example: https://cdn.pulgashop.com/products/101.png
+    CarritoItem:
       type: object
-      description: Respuesta con la información completa del carrito
+      description: Línea dentro de un carrito con datos de catálogo incluidos
       properties:
+        productoId:
+          type: integer
+          example: 101
+        cantidad:
+          type: integer
+          example: 3
+        precio:
+          type: number
+          format: float
+          description: Precio unitario almacenado en el carrito
+          example: 19.99
+        name:
+          type: string
+          example: Collar luminiscente
+        description:
+          type: string
+        category:
+          type: string
+          example: accesorios
+        imageUrl:
+          type: string
+          format: uri
+        quantity:
+          type: integer
+          description: Stock total reportado en el catálogo al momento de la lectura
+          example: 50
+      required:
+        - productoId
+        - cantidad
+        - precio
+    CarritoDetallado:
+      type: object
+      description: Representación persistida del carrito con items hidratados
+      properties:
+        id:
+          type: integer
+          example: 12
+        compradorId:
+          type: string
+          example: user_abc123
+        total:
+          type: number
+          format: float
+          example: 59.97
         items:
           type: array
-          description: Lista de items en el carrito
           items:
-            $ref: '#/components/schemas/CartItemResponse'
-        total:
-          type: number
-          format: float
-          description: Total del carrito
-          example: 250.45
-
-    CreateOrderRequest:
-      type: object
-      description: DTO para crear una nueva orden
-      properties:
-        direccion_envio:
+            $ref: '#/components/schemas/CarritoItem'
+        createdAt:
           type: string
-          description: Dirección de envío para la orden
-          example: Av. Siempre Viva 742
-        metodo_pago_id:
+          format: date-time
+          example: 2025-11-20T21:45:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2025-11-20T21:47:35Z
+    CrearCarritoRequest:
+      type: object
+      properties:
+        compradorId:
+          type: string
+          description: Identificador único del comprador
+          example: user_abc123
+      required:
+        - compradorId
+    EliminarCarritoRequest:
+      type: object
+      properties:
+        compradorId:
+          type: string
+          description: Comprador dueño del carrito a eliminar
+          example: user_abc123
+        carritoId:
           type: integer
-          description: ID del método de pago seleccionado
+          description: Identificador del carrito (opcional). Si se omite, se eliminará el más reciente.
+      required:
+        - compradorId
+    AgregarProductoRequest:
+      type: object
+      properties:
+        compradorId:
+          type: string
+          example: user_abc123
+        productoId:
+          type: integer
+          example: 101
+        cantidad:
+          type: integer
+          minimum: 1
+          example: 2
+      required:
+        - compradorId
+        - productoId
+        - cantidad
+    EliminarProductoRequest:
+      type: object
+      properties:
+        compradorId:
+          type: string
+          example: user_abc123
+        productoId:
+          type: integer
+          example: 101
+        cantidad:
+          type: integer
+          minimum: 1
+          description: Cantidad a eliminar; si es mayor o igual a la cantidad en el carrito, se elimina el item completo.
           example: 1
       required:
-        - direccion_envio
-        - metodo_pago_id
-
-    CreateOrderResponse:
+        - compradorId
+        - productoId
+        - cantidad
+    Orden:
       type: object
-      description: Respuesta después de crear una orden
+      description: Orden de compra generada a partir de un carrito
       properties:
-        orden_id:
+        id:
           type: integer
-          description: ID de la orden creada
-          example: 4567
-        mensaje:
-          type: string
-          description: Mensaje de confirmación
-          example: Orden creada exitosamente
-
-    OrderSummary:
-      type: object
-      description: Resumen de una orden para el listado
-      properties:
-        id_orden:
+          example: 45
+        carritoId:
           type: integer
-          description: ID único de la orden
-          example: 4567
-        fecha:
+          example: 12
+        compradorId:
           type: string
-          format: date-time
-          description: Fecha y hora de creación de la orden
-          example: 2025-09-08T23:30:00Z
-        estado:
+          example: user_abc123
+        estadoPago:
           type: string
-          description: Estado actual de la orden
-          example: enviada
+          enum:
+            - PENDIENTE
+            - PAGADO
+            - CANCELADO
+          example: PENDIENTE
         total:
           type: number
           format: float
-          description: Monto total de la orden
-          example: 150.75
-
-    OrderDetail:
-      type: object
-      description: Detalle completo de una orden
-      properties:
-        id_orden:
-          type: integer
-          description: ID único de la orden
-          example: 4567
-        fecha:
+          example: 59.97
+        fechaCreacion:
           type: string
           format: date-time
-          description: Fecha y hora de creación de la orden
-          example: 2025-09-
-
+          example: 2025-11-20T21:48:12Z
+    EstadisticasProducto:
+      type: object
+      description: Métricas agregadas sobre órdenes y carritos vinculados a un producto
+      properties:
+        vecesComprado:
+          type: integer
+          example: 10
+        vecesCancelado:
+          type: integer
+          example: 2
+        carritosCompletados:
+          type: integer
+          example: 8
+        carritosAbandonados:
+          type: integer
+          example: 4
     ErrorResponse:
       type: object
-      description: Respuesta de error estándar
       properties:
-        mensaje:
+        statusCode:
+          type: integer
+          example: 404
+        message:
           type: string
-          description: Descripción del error
-          example: El recurso solicitado no fue encontrado
+          example: Carrito para el comprador user_abc123 no encontrado.
+        error:
+          type: string
+          example: Not Found
