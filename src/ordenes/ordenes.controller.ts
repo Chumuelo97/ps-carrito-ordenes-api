@@ -1,6 +1,6 @@
-import { Controller, Post, Get, Param, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, InternalServerErrorException, NotFoundException, Param, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrdenesService } from './ordenes.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('ordenes')
 @Controller('ordenes')

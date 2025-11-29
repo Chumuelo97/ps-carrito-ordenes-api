@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { CarritoEntity } from 'src/carrito/entities/carrito.entity';
 
 @Entity('ordenes')
 export class OrdenEntity {
@@ -14,6 +17,12 @@ export class OrdenEntity {
   @Column('int')
   carritoId: number;
 
+  @ManyToOne(() => CarritoEntity, carrito => carrito.ordenes, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'carritoId' })
+  carrito: CarritoEntity;
+
   @Column('varchar', { length: 255 })
   compradorId: string;
 
@@ -22,7 +31,7 @@ export class OrdenEntity {
     default: 'PENDIENTE',
   })
   estadoPago: string;
-  
+
   @Column('decimal', { precision: 10, scale: 2 })
   total: number;
 
