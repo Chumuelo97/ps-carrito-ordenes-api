@@ -12,28 +12,28 @@
 
 
 ### Tabla: `carrito`
-Almacena el estado actual de los carritos de compra de los usuarios. Los ítems se guardan de forma desnormalizada en una columna JSON.
+Almacena el estado actual de los carritos de compra de los usuarios. Los ítems se guardan de forma desnormalizada en una columna JSON (mapeada como `productos` en la BD).
 
-| Campo         | Tipo            | Restricciones                          | Descripción                                                                 |
-| ------------- | --------------- | -------------------------------------- | --------------------------------------------------------------------------- |
-| `id`          | INT             | PRIMARY KEY, AUTO_INCREMENT            | Identificador único del carrito.                                            |
-| `compradorId` | VARCHAR(255)    | NOT NULL, INDEX                        | Identificador del usuario dueño del carrito.                                |
-| `total`       | DECIMAL(12,2)   | NOT NULL, DEFAULT 0                    | Monto total acumulado de los productos en el carrito.                       |
-| `items`       | JSON (o TEXT)   | NULLABLE                               | Lista de productos en formato JSON (ej. `[{productoId: 1, cantidad: 2}]`). |
-| `created_at`  | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP              | Fecha de creación del carrito.                                              |
-| `updated_at`  | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP ON UPDATE... | Fecha de la última modificación del carrito.                                |
+| Campo                 | Tipo            | Restricciones                          | Descripción                                                                 |
+| --------------------- | --------------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| `id`                  | INT             | PRIMARY KEY, AUTO_INCREMENT            | Identificador único del carrito.                                            |
+| `comprador_id`        | VARCHAR(255)    | NOT NULL, INDEX                        | Identificador del usuario dueño del carrito.                                |
+| `total`               | DECIMAL(12,2)   | NOT NULL, DEFAULT 0                    | Monto total acumulado de los productos en el carrito.                       |
+| `productos`           | JSON (o TEXT)   | NULLABLE                               | Lista de productos en formato JSON (ej. `[{productoId: 1, cantidad: 2}]`). |
+| `fecha_creacion`      | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP              | Fecha de creación del carrito.                                              |
+| `fecha_actualizacion` | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP ON UPDATE... | Fecha de la última modificación del carrito.                                |
 
 ### Tabla: `ordenes`
-Registra las órdenes de compra generadas a partir de un carrito.
+Registra las órdenes de compra generadas a partir de un carrito. (Nombres de columnas en BD en snake_case.)
 
-| Campo           | Tipo          | Restricciones                          | Descripción                                                 |
-| --------------- | ------------- | -------------------------------------- | ----------------------------------------------------------- |
-| `id`            | INT           | PRIMARY KEY, AUTO_INCREMENT            | Identificador único de la orden.                            |
-| `carritoId`     | INT           | NOT NULL                               | ID del carrito asociado a esta orden.                       |
-| `compradorId`   | VARCHAR(255)  | NOT NULL                               | Identificador del comprador.                                |
-| `estadoPago`    | ENUM          | NOT NULL, DEFAULT 'PENDIENTE'          | Estado del pago (`PENDIENTE`, `PAGADO`, `CANCELADO`).       |
-| `total`         | DECIMAL(10,2) | NOT NULL                               | Monto final de la orden al momento de creación.             |
-| `fechaCreacion` | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP              | Fecha y hora en que se generó la orden.                     |
+| Campo            | Tipo          | Restricciones                          | Descripción                                                 |
+| ---------------- | ------------- | -------------------------------------- | ----------------------------------------------------------- |
+| `id`             | INT           | PRIMARY KEY, AUTO_INCREMENT            | Identificador único de la orden.                            |
+| `carrito_id`     | INT           | NOT NULL                               | ID del carrito asociado a esta orden.                       |
+| `comprador_id`   | VARCHAR(255)  | NOT NULL                               | Identificador del comprador.                                |
+| `estado_pago`    | ENUM          | NOT NULL, DEFAULT 'PENDIENTE'          | Estado del pago (`PENDIENTE`, `PAGADO`, `CANCELADO`).       |
+| `total`          | DECIMAL(10,2) | NOT NULL                               | Monto final de la orden al momento de creación.             |
+| `fecha_creacion` | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP              | Fecha y hora en que se generó la orden.                     |
 
 ---
 
