@@ -31,14 +31,17 @@ export class CarritoEntity {
   // Guardamos los items directamente como JSON en la columna `items`.
   // Esto permite que el servicio y el controlador trabajen solo con
   // `CarritoEntity` y arrays/plains objects.
-  @Column('simple-json', { name: 'items', nullable: true })
+  // Guardamos JSON serializado en texto (`simple-json`) y mapeamos la columna a
+  // `productos` en la base de datos (nombre en español). Si prefieres JSON
+  // nativo en MySQL cambia a @Column('json', { name: 'productos', nullable: true }).
+  @Column('simple-json', { name: 'productos', nullable: true })
   items: Array<{ productoId: number; cantidad: number; precio: number; carritoItemId?: number }>;
 
   // Timestamps útiles para depuración y para elegir el carrito "más reciente"
-  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  @CreateDateColumn({ type: 'timestamp', name: 'fecha_creacion' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'timestamp', name: 'fecha_actualizacion' })
   updatedAt: Date;
 
   @OneToMany(() => OrdenEntity, orden => orden.carrito)
