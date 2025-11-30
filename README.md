@@ -3,13 +3,10 @@
 <img width="1739" height="1791" alt="diagrama de secuencia ordenes y carrito" src="https://github.com/user-attachments/assets/a462deed-7ecf-49c2-85e3-c8c348439d3b" />
 
 # 📦 Documentación de la Base de Datos
-<img width="655" height="274" alt="bd new" src="https://github.com/user-attachments/assets/1a2ccbfc-fced-4e3a-968c-ae30d700039c" />
-
+<img width="822" height="344" alt="Untitled" src="https://github.com/user-attachments/assets/659db177-92ff-4f20-b508-3fe557c51d08" />
 
 
 **📖 Diccionario de Datos**
-![bd png](https://github.com/user-attachments/assets/3e4dc674-d036-4f8d-ad63-e3117a8cb4d3)
-
 
 ### Tabla: `carrito`
 Almacena el estado actual de los carritos de compra de los usuarios. Los ítems se guardan de forma desnormalizada en una columna JSON (mapeada como `productos` en la BD).
