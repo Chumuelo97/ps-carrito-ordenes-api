@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
+import { OrdenEntity } from '../../ordenes/entities/orden.entity';
 // Note: we store items as JSON inside the carrito table, to keep the API
 // working only with `CarritoEntity` and avoid a separate carrito_items table.
 
@@ -16,12 +17,12 @@ export class CarritoEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { name: 'comprador_id', length: 255 })
   @Index()
   compradorId: string;
 
   // Usar 2 decimales para representar montos en moneda (ej: pesos)
-  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  @Column('decimal', { name: 'total', precision: 12, scale: 2, default: 0 })
   total: number;
 
   // Un carrito tiene MUCHOS items.
@@ -30,13 +31,19 @@ export class CarritoEntity {
   // Guardamos los items directamente como JSON en la columna `items`.
   // Esto permite que el servicio y el controlador trabajen solo con
   // `CarritoEntity` y arrays/plains objects.
-  @Column('simple-json', { nullable: true })
+  // Guardamos JSON serializado en texto (`simple-json`) y mapeamos la columna a
+  // `productos` en la base de datos (nombre en español). Si prefieres JSON
+  // nativo en MySQL cambia a @Column('json', { name: 'productos', nullable: true }).
+  @Column('simple-json', { name: 'productos', nullable: true })
   items: Array<{ productoId: number; cantidad: number; precio: number; carritoItemId?: number }>;
 
   // Timestamps útiles para depuración y para elegir el carrito "más reciente"
-  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  @CreateDateColumn({ type: 'timestamp', name: 'fecha_creacion' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
+  @UpdateDateColumn({ type: 'timestamp', name: 'fecha_actualizacion' })
   updatedAt: Date;
+
+  @OneToMany(() => OrdenEntity, orden => orden.carrito)
+  ordenes?: OrdenEntity[];
 }
