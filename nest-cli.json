@@ -4,6 +4,13 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["**/*.txt"]
+    "assets": [
+      "**/*.txt",
+      {
+        "include": "../docs/*.yaml",
+        "outDir": "./docs",
+        "watchAssets": true
+      }
+    ]
   }
 }

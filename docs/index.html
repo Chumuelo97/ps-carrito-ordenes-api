@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>PulgaShop · Documentación API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: Roboto, 'Segoe UI', sans-serif;
+        background: #0e141b;
+        color: #f7fbff;
+      }
+
+      header {
+        background: #0b3d60;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      header .title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      header .links a {
+        color: #f7fbff;
+        text-decoration: none;
+        margin-left: 1.5rem;
+        font-size: 0.95rem;
+        transition: opacity 0.2s ease-in-out;
+      }
+
+      header .links a:hover {
+        opacity: 0.7;
+      }
+
+      #swagger-ui {
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 class="title">PulgaShop · API Docs</h1>
+      <nav class="links">
+        <a href="https://github.com/Chumuelo97" target="_blank" rel="noopener"
+          >Repositorio</a
+        >
+        <a
+          href="https://developer.mozilla.org/es/docs/Web/HTTP/Status"
+          target="_blank"
+          rel="noopener"
+          >HTTP Status</a
+        >
+        <a href="./documentacion-api.yaml" download>Descargar YAML</a>
+      </nav>
+    </header>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.addEventListener('load', () => {
+        const ui = SwaggerUIBundle({
+          url: './documentacion-api.yaml',
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          docExpansion: 'none',
+          filter: true,
+          displayRequestDuration: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          layout: 'StandaloneLayout',
+        });
+
+        window.ui = ui; // Útil para depuración en consola
+      });
+    </script>
+  </body>
+</html>
