@@ -31,7 +31,7 @@ export class CarritoEntity {
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updatedAt: Date;
 
-  // 🔥 RELACIÓN IMPORTANTE (FALTABA)
+  // Relación con OrdenEntity
   @OneToMany(() => OrdenEntity, orden => orden.carrito)
   ordenes: OrdenEntity[];
 }
