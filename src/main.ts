@@ -27,9 +27,9 @@ async function bootstrap() {
   // En producción, __dirname apuntará a /dist/src, por lo que subimos dos niveles
   // para llegar a /dist y luego entramos a /docs
   const candidateYamlPaths = [
-    join(process.cwd(), 'docs', 'documentacion-api.yaml'),
-    join(__dirname, '..', 'docs', 'documentacion-api.yaml'),
-    join(__dirname, '..', '..', 'docs', 'documentacion-api.yaml'),
+    join(process.cwd(), 'docs', 'documentacionapi.yaml'),
+    join(__dirname, '..', 'docs', 'documentacionapi.yaml'),
+    join(__dirname, '..', '..', 'docs', 'documentacionapi.yaml'),
   ];
 
   const yamlPath = candidateYamlPaths.find((path) => fs.existsSync(path));
