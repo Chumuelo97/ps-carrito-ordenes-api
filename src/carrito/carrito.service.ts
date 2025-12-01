@@ -14,7 +14,6 @@ import {
   CrearCarritoDto,
   CarritoDetalladoDto,
   EliminarCarritoDto,
-  ObtenerCarritos
 } from './dto/carrito.dto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -80,15 +79,7 @@ export class CarritoService {
    * crearCarrito
    * eliminarCarrito
    * obtenerCarritos
-  */
-
-  async obtenerCarritos(): Promise<CarritoDetalladoDto[]> {
-    const carritos = await this.carritoRepository.find();
-    const carritosHidratados = await Promise.all(
-      carritos.map((carrito) => this._hydrateCarrito(carrito)),
-    );
-    return carritosHidratados as CarritoDetalladoDto[];
-  }
+   */
 
   //get carritos por id
   async encontrarCarritoPorId(id: number): Promise<CarritoDetalladoDto> {
@@ -101,12 +92,13 @@ export class CarritoService {
     const carritoHidratado = await this._hydrateCarrito(carrito);
     return carritoHidratado as CarritoDetalladoDto;
   }
-  async obtenerCarritos(): Promise<ObtenerCarritos[]> {
+  //get carritos
+  async obtenerCarritos(): Promise<CarritoDetalladoDto[]> {
     const carritos = await this.carritoRepository.find();
     const carritosHidratados = await Promise.all(
       carritos.map((carrito) => this._hydrateCarrito(carrito)),
     );
-    return carritosHidratados as ObtenerCarritos[];
+    return carritosHidratados as CarritoDetalladoDto[];
   }
   async crearCarrito(
     crearCarritoDto: CrearCarritoDto,
