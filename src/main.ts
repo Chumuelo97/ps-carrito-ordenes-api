@@ -67,7 +67,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
 
   // CORRECCIÓN 3: Escuchar en 0.0.0.0 para Render
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port);
 
   logger.log(`🚀 Microservicio corriendo en puerto ${port}`);
 }

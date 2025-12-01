@@ -35,15 +35,20 @@ export class CarritoEntity {
   // `productos` en la base de datos (nombre en español). Si prefieres JSON
   // nativo en MySQL cambia a @Column('json', { name: 'productos', nullable: true }).
   @Column('simple-json', { name: 'productos', nullable: true })
-  items: Array<{ productoId: number; cantidad: number; precio: number; carritoItemId?: number }>;
+  items: Array<{
+    productoId: number;
+    cantidad: number;
+    precio: number;
+    carritoItemId?: number;
+  }>;
 
   // Timestamps útiles para depuración y para elegir el carrito "más reciente"
   @CreateDateColumn({ type: 'timestamp', name: 'fecha_creacion' })
-  createdAt: Date;
+  fecha_creacion: Date;
 
   @UpdateDateColumn({ type: 'timestamp', name: 'fecha_actualizacion' })
-  updatedAt: Date;
+  fecha_actualizacion: Date;
 
-  @OneToMany(() => OrdenEntity, orden => orden.carrito)
+  @OneToMany(() => OrdenEntity, (orden) => orden.carrito)
   ordenes?: OrdenEntity[];
 }

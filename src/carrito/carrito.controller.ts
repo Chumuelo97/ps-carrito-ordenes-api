@@ -43,6 +43,17 @@ export class CarritoController {
     return this.carritoService.eliminarCarrito(eliminarcarritoDto);
   }
 
+  @Get('obtenerCarritos')
+  @ApiOperation({ summary: 'Obtener todos los carritos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de carritos',
+    type: [CarritoDetalladoDto],
+  })
+  async obtenerCarritos(): Promise<CarritoDetalladoDto[]> {
+    return this.carritoService.obtenerCarritos();
+  }
+
   @Get('obtenerCarro/:id')
   @ApiOperation({ summary: 'Obtener un carrito por ID' })
   @ApiResponse({

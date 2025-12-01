@@ -20,7 +20,6 @@ export class agregarProductosDto {
   @IsNumber()
   cantidad: number;
 }
-
 // DTOs para operaciones de eliminación
 export class EliminarProductoDto {
   @ApiProperty({ description: 'Identificador del comprador' })
@@ -35,14 +34,12 @@ export class EliminarProductoDto {
   @IsNumber()
   cantidad: number;
 }
-
 // carrito DTO
 export class CrearCarritoDto {
   @ApiProperty()
   @IsString()
   compradorId: string;
 }
-
 export class CarritoItemDto {
   @ApiProperty()
   @IsNumber()
@@ -74,7 +71,6 @@ export class CarritoItemDto {
   @IsOptional()
   items: ProductoDto[];
 }
-
 export class EliminarCarritoDto {
   @ApiProperty({
     description: 'Identificador del comprador cuyo carrito se eliminará',
@@ -90,7 +86,6 @@ export class EliminarCarritoDto {
   @IsNumber()
   carritoId: number;
 }
-
 export class CarritoDetalladoDto {
   @ApiProperty()
   @IsNumber()
@@ -108,8 +103,3 @@ export class CarritoDetalladoDto {
   @IsOptional()
   items: ProductoDto[];
 }
-
-
-
-
-

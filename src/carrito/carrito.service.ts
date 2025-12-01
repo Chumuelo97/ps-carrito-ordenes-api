@@ -79,7 +79,16 @@ export class CarritoService {
    * encontrarCarritoPorId
    * crearCarrito
    * eliminarCarrito
-   */
+   * obtenerCarritos
+  */
+
+  async obtenerCarritos(): Promise<CarritoDetalladoDto[]> {
+    const carritos = await this.carritoRepository.find();
+    const carritosHidratados = await Promise.all(
+      carritos.map((carrito) => this._hydrateCarrito(carrito)),
+    );
+    return carritosHidratados as CarritoDetalladoDto[];
+  }
 
   //get carritos por id
   async encontrarCarritoPorId(id: number): Promise<CarritoDetalladoDto> {
