@@ -23,9 +23,6 @@ async function bootstrap() {
     }),
   );
 
-  // CORRECCIÓN 1: Ruta robusta para encontrar el YAML tanto en dev como en prod
-  // En producción, __dirname apuntará a /dist/src, por lo que subimos dos niveles
-  // para llegar a /dist y luego entramos a /docs
   const candidateYamlPaths = [
     join(process.cwd(), 'docs', 'documentacionapi.yaml'),
     join(__dirname, '..', 'docs', 'documentacionapi.yaml'),
@@ -35,38 +32,45 @@ async function bootstrap() {
   const yamlPath = candidateYamlPaths.find((path) => fs.existsSync(path));
 
   // Fallback por si la estructura de carpetas varía (útil para debug)
-  if (!yamlPath) {
-    logger.error(
-      `No se encontró el archivo Swagger. Intentos: ${candidateYamlPaths.join(', ')}`,
-    );
+  let swaggerDoc: any = null;
+  if (yamlPath) {
+    try {
+      const yamlContent = fs.readFileSync(yamlPath, 'utf8');
+      const parsed = yaml.load(yamlContent) as any;
+      if (!parsed || !parsed.info) {
+        throw new Error('Estructura YAML inválida (falta info).');
+      }
+      swaggerDoc = parsed;
+    } catch (err: any) {
+      logger.error(`Error al cargar YAML Swagger: ${err.message}`);
+    }
   } else {
-    const yamlContent = fs.readFileSync(yamlPath, 'utf8');
-    const document = yaml.load(yamlContent) as any;
-
-    const config = new DocumentBuilder()
-      .setTitle(document.info.title)
-      .setDescription(document.info.description)
-      .setVersion(document.info.version)
-      .setContact(document.info.contact?.name || '', '', '');
-
-    // CORRECCIÓN 2: Limpiar servidores hardcodeados
-    // Esto permite que Swagger use la URL actual (HTTPS en Render) automáticamente
-    config.addServer('/', 'Servidor Actual');
-
-    const builtConfig = config.build();
-
-    // Mezclar tu YAML con la configuración generada
-    const combinedDocumentsq = {
-      ...document,
-      ...SwaggerModule.createDocument(app, builtConfig),
-    };
-
-    SwaggerModule.setup('api/v1/docs', app, combinedDocumentsq);
+    logger.warn(
+      `No se encontró archivo YAML. Intentos: ${candidateYamlPaths.join(', ')}`,
+    );
   }
+
+  const builder = new DocumentBuilder()
+    .setTitle(swaggerDoc?.info?.title || 'API PulgaShop')
+    .setDescription(
+      swaggerDoc?.info?.description ||
+        'Documentación generada por Nest (fallback).',
+    )
+    .setVersion(swaggerDoc?.info?.version || '1.0.0')
+    .setContact(swaggerDoc?.info?.contact?.name || 'Equipo', '', '');
+
+  builder.addServer('/', 'Servidor Actual');
+
+  const builtConfig = builder.build();
+  const generated = SwaggerModule.createDocument(app, builtConfig);
+  const finalDoc = swaggerDoc
+    ? { ...swaggerDoc, paths: { ...swaggerDoc.paths, ...generated.paths } }
+    : generated;
+
+  SwaggerModule.setup('api/v1/docs', app, finalDoc);
 
   const port = process.env.PORT || 3001;
 
-  // CORRECCIÓN 3: Escuchar en 0.0.0.0 para Render
   await app.listen(port);
 
   logger.log(`🚀 Microservicio corriendo en puerto ${port}`);

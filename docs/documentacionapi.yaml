@@ -29,16 +29,41 @@ paths:
       responses:
         '201':
           description: Carrito creado o recuperado exitosamente
+  /carrito/productos:
+    get:
+      tags:
+        - carrito
+      summary: Listar productos desde inventario externo
+      operationId: listarProductosExternos
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Lista de productos obtenidos desde el servicio externo de inventario
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CarritoDetallado'
-        '400':
-          description: Datos inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductoDetalle'
   /carrito/eliminarCarrito:
     delete:
       tags:
@@ -138,6 +163,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
   /carrito/eliminarProducto:
     delete:
       tags:
@@ -270,7 +296,7 @@ components:
   schemas:
     ProductoDetalle:
       type: object
-      description: Información de catálogo del producto cargada desde productos.txt
+      description: Información de catálogo del producto obtenida desde el servicio externo de inventario
       properties:
         id:
           type: integer
@@ -298,7 +324,7 @@ components:
           example: https://cdn.pulgashop.com/products/101.png
     CarritoItem:
       type: object
-      description: Línea dentro de un carrito con datos de catálogo incluidos
+      description: Línea dentro de un carrito con datos de catálogo (inventario externo) incluidos
       properties:
         productoId:
           type: integer
@@ -386,14 +412,19 @@ components:
         productoId:
           type: integer
           example: 101
+        sku:
+          type: string
+          description: SKU del producto (alternativo a productoId)
         cantidad:
           type: integer
           minimum: 1
           example: 2
       required:
         - compradorId
-        - productoId
         - cantidad
+      anyOf:
+        - required: [productoId]
+        - required: [sku]
     EliminarProductoRequest:
       type: object
       properties:
@@ -403,6 +434,9 @@ components:
         productoId:
           type: integer
           example: 101
+        sku:
+          type: string
+          description: SKU del producto (alternativo a productoId)
         cantidad:
           type: integer
           minimum: 1
@@ -410,8 +444,10 @@ components:
           example: 1
       required:
         - compradorId
-        - productoId
         - cantidad
+      anyOf:
+        - required: [productoId]
+        - required: [sku]
     Orden:
       type: object
       description: Orden de compra generada a partir de un carrito

@@ -39,6 +39,11 @@ export class CarritoEntity {
     productoId: number;
     cantidad: number;
     precio: number;
+    // Campos opcionales para enriquecer visualización sin romper compatibilidad
+    sku?: string;
+    name?: string;
+    imageUrl?: string;
+    category?: string;
     carritoItemId?: number;
   }>;
 
