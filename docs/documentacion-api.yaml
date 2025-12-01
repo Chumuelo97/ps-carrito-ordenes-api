@@ -65,6 +65,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /carrito/obtenerCarritos:
+    get:
+      tags:
+        - carrito
+      summary: Obtener todos los carritos
+      operationId: obtenerCarritos
+      responses:
+        '200':
+          description: Lista de carritos con sus items hidratados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarritoDetallado'
   /carrito/obtenerCarro/{id}:
     get:
       tags:
