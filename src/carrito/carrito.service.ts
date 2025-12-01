@@ -6,6 +6,8 @@ import { CarritoItemEntity } from './entities/carrito-item.entity';
 
 @Injectable()
 export class CarritoService {
+  private readonly logger = new Logger(CarritoService.name);
+
   constructor(
     @InjectRepository(CarritoEntity)
     private readonly carritoRepository: Repository<CarritoEntity>,

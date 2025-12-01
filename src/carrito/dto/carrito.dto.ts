@@ -4,18 +4,43 @@ import {
   IsString,
   IsArray,
   IsOptional,
+  IsDateString,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductoDto } from './producto.dto';
-// Productos DTO 
 export class agregarProductosDto {
   @ApiProperty()
   @IsString()
   compradorId: string;
+
+  @ApiProperty({ description: 'ID del producto (opcional si se usa sku)' })
+  @IsOptional()
+  @IsNumber()
+  productoId?: number;
+
+  @ApiProperty({
+    description: 'SKU del producto (opcional si se usa productoId)',
+  })
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
   @ApiProperty()
   @IsNumber()
-  productoId: number;
+  cantidad: number;
+}
+
+// NUEVO: agregar por SKU explícito
+export class AgregarProductoSkuDto {
+  @ApiProperty()
+  @IsString()
+  compradorId: string;
+
+  @ApiProperty({ description: 'SKU del producto a agregar' })
+  @IsString()
+  sku: string;
+
   @ApiProperty()
   @IsNumber()
   cantidad: number;
@@ -27,13 +52,53 @@ export class EliminarProductoDto {
   @IsString()
   compradorId: string;
 
-  @ApiProperty({ description: 'Identificador del producto a eliminar' })
+  @ApiProperty({
+    description: 'Identificador del producto a eliminar',
+    required: false,
+  })
+  @IsOptional()
   @IsNumber()
-  productoId: number;
+  productoId?: number;
+
+  @ApiProperty({ description: 'SKU del producto a eliminar', required: false })
+  @IsOptional()
+  @IsString()
+  sku?: string;
 
   @ApiProperty()
   @IsNumber()
   cantidad: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  carritoId?: number;
+}
+
+// NUEVO: actualizar cantidad (PUT/PATCH)
+export class ActualizarCantidadDto {
+  @ApiProperty()
+  @IsString()
+  compradorId: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  productoId?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @ApiProperty({ description: 'Nueva cantidad a establecer' })
+  @IsNumber()
+  cantidad: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  carritoId?: number;
 }
 
 // carrito DTO
@@ -57,6 +122,27 @@ export class CarritoItemDto {
   @ApiProperty()
   @IsNumber()
   productoId: number;
+
+  // NUEVO: campos enriquecidos
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  sku?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  category?: string;
 
   @ApiProperty()
   @IsNumber()
@@ -108,8 +194,3 @@ export class CarritoDetalladoDto {
   @IsOptional()
   items: ProductoDto[];
 }
-
-
-
-
-

@@ -1,5 +1,13 @@
 //import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
@@ -16,6 +24,23 @@ import { log } from 'console';
 @Controller('carrito')
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
+
+  @Get('productos')
+  @ApiOperation({ summary: 'Listar productos desde inventario externo' })
+  async productosExternos(
+    @Query('page') page?: string,
+    @Query('take') take?: string,
+    @Query('order') order?: string,
+  ) {
+    const pageNum = page && !Number.isNaN(Number(page)) ? parseInt(page, 10) : 1;
+    const takeNum = take && !Number.isNaN(Number(take)) ? parseInt(take, 10) : 10;
+    const orderStr = order && order.toLowerCase() === 'desc' ? 'desc' : 'asc';
+    return this.carritoService.obtenerProductosExternos({
+      page: pageNum,
+      take: takeNum,
+      order: orderStr,
+    });
+  }
 
   @Post('crearCarrito')
   @ApiOperation({ summary: 'Crear un nuevo carrito' })
@@ -43,6 +68,17 @@ export class CarritoController {
     return this.carritoService.eliminarCarrito(eliminarcarritoDto);
   }
 
+  @Get('obtenerCarritos')
+  @ApiOperation({ summary: 'Obtener todos los carritos' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de carritos',
+    type: [CarritoDetalladoDto],
+  })
+  async obtenerCarritos(): Promise<CarritoDetalladoDto[]> {
+    return this.carritoService.obtenerCarritos();
+  }
+
   @Get('obtenerCarro/:id')
   @ApiOperation({ summary: 'Obtener un carrito por ID' })
   @ApiResponse({
@@ -53,7 +89,6 @@ export class CarritoController {
   encontrarCarritoPorId(@Param('id') id: string) {
     return this.carritoService.encontrarCarritoPorId(+id);
   }
-
   @Post('agregarProductos')
   @ApiOperation({ summary: 'Agregar producto al carrito' })
   @ApiResponse({
