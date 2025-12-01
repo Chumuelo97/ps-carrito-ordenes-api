@@ -4,11 +4,12 @@ import {
   IsString,
   IsArray,
   IsOptional,
+  IsDateString,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ProductoDto } from './producto.dto';
-// Productos DTO 
+// Productos DTO
 export class agregarProductosDto {
   @ApiProperty()
   @IsString()

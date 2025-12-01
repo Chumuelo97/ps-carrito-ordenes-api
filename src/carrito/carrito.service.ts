@@ -10,10 +10,11 @@ import { CarritoEntity } from './entities/carrito.entity';
 import { ProductoDto } from './dto/producto.dto';
 import {
   agregarProductosDto,
-  CrearCarritoDto,
   EliminarProductoDto,
+  CrearCarritoDto,
   CarritoDetalladoDto,
   EliminarCarritoDto,
+  ObtenerCarritos
 } from './dto/carrito.dto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -42,8 +43,7 @@ export class CarritoService {
     }
   }
 
-  /**
-   * ---- ¡NUEVO MÉTODO PRIVADO! ----
+  /*
    * Este método se encarga de "hidratar" el carrito.
    * Combina la información de los items del carrito con los detalles completos del producto.
    */
@@ -101,7 +101,13 @@ export class CarritoService {
     const carritoHidratado = await this._hydrateCarrito(carrito);
     return carritoHidratado as CarritoDetalladoDto;
   }
-
+  async obtenerCarritos(): Promise<ObtenerCarritos[]> {
+    const carritos = await this.carritoRepository.find();
+    const carritosHidratados = await Promise.all(
+      carritos.map((carrito) => this._hydrateCarrito(carrito)),
+    );
+    return carritosHidratados as ObtenerCarritos[];
+  }
   async crearCarrito(
     crearCarritoDto: CrearCarritoDto,
   ): Promise<CarritoDetalladoDto> {
@@ -248,28 +254,43 @@ export class CarritoService {
 
     let carrito: CarritoEntity | null = null;
     if (carritoId) {
-      carrito = await this.carritoRepository.findOne({ where: { id: carritoId } });
+      carrito = await this.carritoRepository.findOne({
+        where: { id: carritoId },
+      });
     } else {
-      carrito = await this.carritoRepository.findOne({ where: { compradorId }, order: { id: 'DESC' } });
+      carrito = await this.carritoRepository.findOne({
+        where: { compradorId },
+        order: { id: 'DESC' },
+      });
     }
 
     if (!carrito) {
-      throw new NotFoundException(`Carrito para el comprador ${compradorId} no encontrado.`);
+      throw new NotFoundException(
+        `Carrito para el comprador ${compradorId} no encontrado.`,
+      );
     }
 
     // Asegurarnos de que items es un array
     if (!Array.isArray(carrito.items) || carrito.items.length === 0) {
-      throw new NotFoundException(`No hay productos en el carrito del comprador ${compradorId}.`);
+      throw new NotFoundException(
+        `No hay productos en el carrito del comprador ${compradorId}.`,
+      );
     }
 
-    const itemIndex = carrito.items.findIndex((item) => item.productoId === productoId);
+    const itemIndex = carrito.items.findIndex(
+      (item) => item.productoId === productoId,
+    );
     if (itemIndex === -1) {
-      throw new NotFoundException(`Producto con ID ${productoId} no encontrado en el carrito.`);
+      throw new NotFoundException(
+        `Producto con ID ${productoId} no encontrado en el carrito.`,
+      );
     }
 
     const eliminarCantidad = Number((eliminarProductoDto as any).cantidad) || 0;
     if (eliminarCantidad <= 0) {
-      throw new BadRequestException('La cantidad a eliminar debe ser mayor que 0');
+      throw new BadRequestException(
+        'La cantidad a eliminar debe ser mayor que 0',
+      );
     }
 
     const item = carrito.items[itemIndex] as any;

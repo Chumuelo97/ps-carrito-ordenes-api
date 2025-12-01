@@ -6,6 +6,7 @@ import {
   agregarProductosDto,
   CrearCarritoDto,
   EliminarCarritoDto,
+  ObtenerCarritosDTO,
   EliminarProductoDto,
 } from './dto/carrito.dto';
 import { CarritoEntity } from './entities/carrito.entity';
@@ -64,7 +65,10 @@ export class CarritoController {
   encontrarCarritoPorId(@Param('id') id: string) {
     return this.carritoService.encontrarCarritoPorId(+id);
   }
-
+  @Get()
+  async obtenerCarritos(): Promise<ObtenerCarritos[]> {
+    return this.carritoService.obtenerCarritos();
+  }
   @Post('agregarProductos')
   @ApiOperation({ summary: 'Agregar producto al carrito' })
   @ApiResponse({
