@@ -1,12 +1,13 @@
-// src/ordenes/entities/orden.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
+  OneToMany,
   ManyToOne,
-  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+import { OrdenItemEntity } from './orden-item.entity';
 import { CarritoEntity } from 'src/carrito/entities/carrito.entity';
 
 @Entity('ordenes')
@@ -14,27 +15,24 @@ export class OrdenEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('int')
-  carritoId: number;
-
-  @ManyToOne(() => CarritoEntity, carrito => carrito.ordenes, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'carritoId' })
-  carrito: CarritoEntity;
-
-  @Column('varchar', { length: 255 })
+  @Column()
   compradorId: string;
 
-  @Column('enum', {
-    enum: ['PENDIENTE', 'PAGADO', 'CANCELADO'],
-    default: 'PENDIENTE',
-  })
-  estadoPago: string;
-
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column()
   total: number;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  fechaCreacion: Date;
+  @Column()
+  estadoPago: string;
+
+  @ManyToOne(() => CarritoEntity, (carrito) => carrito.ordenes)
+  carrito: CarritoEntity;
+
+  @OneToMany(() => OrdenItemEntity, (item) => item.orden, { cascade: true })
+  items: OrdenItemEntity[];
+
+  @CreateDateColumn()
+  fecha: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
