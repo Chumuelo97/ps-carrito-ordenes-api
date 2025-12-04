@@ -23,48 +23,72 @@ async function bootstrap() {
     }),
   );
 
+  // Rutas candidatas (soporta dev y prod). Incluye nombres alternativos por si el archivo cambia de nombre.
   const candidateYamlPaths = [
     join(process.cwd(), 'docs', 'documentacionapi.yaml'),
     join(__dirname, '..', 'docs', 'documentacionapi.yaml'),
     join(__dirname, '..', '..', 'docs', 'documentacionapi.yaml'),
+    // nombres alternativos conocidos
+    join(process.cwd(), 'docs', 'documentacion-api.yaml'),
+    join(__dirname, '..', 'docs', 'documentacion-api.yaml'),
+    join(__dirname, '..', '..', 'docs', 'documentacion-api.yaml'),
   ];
-
-  const yamlPath = candidateYamlPaths.find((path) => fs.existsSync(path));
-
-  // Fallback por si la estructura de carpetas varía (útil para debug)
-  let swaggerDoc: any = null;
-  if (yamlPath) {
+  
+  const yamlPath = candidateYamlPaths.find((p) => fs.existsSync(p));
+  let yamlDoc: any | null = null;
+  if (!yamlPath) {
+    logger.warn(
+      `No se encontró documento YAML. Intentos: ${candidateYamlPaths.join(', ')}`,
+    );
+  } else {
     try {
       const yamlContent = fs.readFileSync(yamlPath, 'utf8');
-      const parsed = yaml.load(yamlContent) as any;
-      if (!parsed || !parsed.info) {
-        throw new Error('Estructura YAML inválida (falta info).');
+      yamlDoc = yaml.load(yamlContent) as any;
+      if (!yamlDoc?.openapi || !yamlDoc?.info) {
+        throw new Error('Documento YAML inválido: falta openapi/info.');
       }
-      swaggerDoc = parsed;
+      logger.log(`Swagger YAML cargado desde: ${yamlPath}`);
     } catch (err: any) {
-      logger.error(`Error al cargar YAML Swagger: ${err.message}`);
+      logger.error(`Error al leer YAML Swagger: ${err.message}`);
+      yamlDoc = null;
     }
-  } else {
-    logger.warn(
-      `No se encontró archivo YAML. Intentos: ${candidateYamlPaths.join(', ')}`,
-    );
   }
 
+  // Config base generada por Nest (para complementar si faltan partes en el YAML)
   const builder = new DocumentBuilder()
-    .setTitle(swaggerDoc?.info?.title || 'API PulgaShop')
-    .setDescription(
-      swaggerDoc?.info?.description ||
-        'Documentación generada por Nest (fallback).',
-    )
-    .setVersion(swaggerDoc?.info?.version || '1.0.0')
-    .setContact(swaggerDoc?.info?.contact?.name || 'Equipo', '', '');
+    .setTitle(yamlDoc?.info?.title ?? 'API PulgaShop')
+    .setDescription(yamlDoc?.info?.description ?? 'Documentación de la API')
+    .setVersion(yamlDoc?.info?.version ?? '1.0.0');
 
-  builder.addServer('/', 'Servidor Actual');
+  // Servidor por defecto si el YAML no define servers
+  builder.addServer('/', 'Servidor actual');
 
   const builtConfig = builder.build();
   const generated = SwaggerModule.createDocument(app, builtConfig);
-  const finalDoc = swaggerDoc
-    ? { ...swaggerDoc, paths: { ...swaggerDoc.paths, ...generated.paths } }
+
+  // Mezclar el documento YAML (si existe) con lo generado por Nest.
+  // Se prioriza el contenido del YAML.
+  const finalDoc = yamlDoc
+    ? {
+        ...generated,
+        ...yamlDoc,
+        info: {
+          ...(generated as any).info,
+          ...(yamlDoc.info ?? {}),
+        },
+        servers: yamlDoc.servers ??
+          (generated as any).servers ?? [
+            { url: '/', description: 'Servidor actual' },
+          ],
+        components: {
+          ...((generated as any).components ?? {}),
+          ...((yamlDoc as any).components ?? {}),
+        },
+        paths: {
+          ...((generated as any).paths ?? {}),
+          ...((yamlDoc as any).paths ?? {}),
+        },
+      }
     : generated;
 
   SwaggerModule.setup('api/v1/docs', app, finalDoc);
