@@ -1,37 +1,48 @@
 import {
   Controller,
   Post,
-  Get,
   Param,
   Body,
-  Query,
-  UseGuards,
-  Req,
+  HttpCode,
+  HttpException,
+  Get,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { OrdenesService } from './ordenes.service';
-import { CheckoutDto } from './dto/checkout.dto';
-import { FiltersOrdenDto } from './dto/filters-orden.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateOrdenDto } from './dto/create-orden.dto';
+import { CreateOrdenResponseDto } from './dto/create-orden-response.dto';
 
 @Controller('ordenes')
 export class OrdenesController {
   constructor(private readonly ordenesService: OrdenesService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post('checkout')
-  checkout(@Req() req, @Body() dto: CheckoutDto) {
-    return this.ordenesService.checkout(req.user.id, dto);
+  // Mantener la ruta tal como la tienes: POST /ordenes/:compradorId
+  // El body (CreateOrdenDto) es opcional; se acepta si quieres pasar direccion/nombre/total.
+  @Post(':compradorId')
+  @HttpCode(201)
+  async crear(
+    @Param('compradorId') compradorId: string,
+    @Body() createOrdenDto?: CreateOrdenDto,
+  ): Promise<CreateOrdenResponseDto> {
+    try {
+      return await this.ordenesService.crearOrdenDesdeCarrito(
+        compradorId,
+        createOrdenDto,
+      );
+    } catch (err: any) {
+      // err.status puede venir de excepciones de Nest; si no, 500
+      throw new HttpException(err.message || 'Error interno', err.status || 500);
+    }
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('mis-ordenes')
-  misOrdenes(@Query() filtros: FiltersOrdenDto, @Req() req) {
-    return this.ordenesService.misOrdenes(req.user.id, filtros);
+  // Endpoints auxiliares ya existentes: GET orden por id y por comprador
+  @Get(':ordenId')
+  async obtener(@Param('ordenId', ParseIntPipe) ordenId: number) {
+    return this.ordenesService.obtenerOrden(ordenId);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  obtenerPorId(@Param('id') id: number, @Req() req) {
-    return this.ordenesService.obtenerOrdenPorId(id, req.user.id);
+  @Get('comprador/:compradorId')
+  async obtenerPorComprador(@Param('compradorId') compradorId: string) {
+    return this.ordenesService.obtenerOrdenesPorComprador(compradorId);
   }
 }

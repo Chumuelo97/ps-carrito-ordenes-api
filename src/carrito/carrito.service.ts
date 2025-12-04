@@ -1,8 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CarritoEntity } from './entities/carrito.entity';
-import { CarritoItemEntity } from './entities/carrito-item.entity';
 
 @Injectable()
 export class CarritoService {
@@ -18,7 +17,11 @@ export class CarritoService {
       where: { compradorId },
       relations: ['items'],
     });
-    if (!carrito) throw new NotFoundException('Carrito no encontrado');
+
+    if (!carrito) {
+      throw new NotFoundException('Carrito no encontrado');
+    }
+
     return carrito;
   }
 
@@ -26,15 +29,25 @@ export class CarritoService {
     const carrito = await this.obtenerCarrito(compradorId);
     carrito.items = [];
     carrito.total = 0;
+
     await this.carritoRepository.save(carrito);
   }
 
   async crearCarrito(compradorId: string) {
-    let carrito = await this.carritoRepository.findOne({ where: { compradorId } });
+    let carrito = await this.carritoRepository.findOne({
+      where: { compradorId },
+    });
+
     if (!carrito) {
-      carrito = this.carritoRepository.create({ compradorId, items: [], total: 0 });
+      carrito = this.carritoRepository.create({
+        compradorId,
+        items: [],
+        total: 0,
+      });
+
       await this.carritoRepository.save(carrito);
     }
+
     return carrito;
   }
 }

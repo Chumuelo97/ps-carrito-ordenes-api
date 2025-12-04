@@ -1,3 +1,4 @@
+// src/productos/productos.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
@@ -10,19 +11,21 @@ export class ProductosService {
     private readonly productoRepository: Repository<ProductoEntity>,
   ) {}
 
+  // Obtener producto por id (usa findOneBy para compatibilidad TypeORM >=0.3)
   async findOne(id: number) {
-    const producto = await this.productoRepository.findOne({ where: { id } });
+    const producto = await this.productoRepository.findOneBy({ id });
     if (!producto) throw new NotFoundException('Producto no encontrado');
     return producto;
   }
 
+  // Reducir stock; si se pasa manager, se usa la transacción
   async reducirStock(productoId: number, cantidad: number, manager?: EntityManager) {
-    const repo = manager ?? this.productoRepository;
-    const producto = await repo.findOne({ where: { id: productoId } });
+    const repo = manager ? manager.getRepository(ProductoEntity) : this.productoRepository;
+
+    const producto = await repo.findOneBy({ id: productoId });
     if (!producto) throw new NotFoundException('Producto no encontrado');
 
-    if (producto.stock < cantidad)
-      throw new BadRequestException('Stock insuficiente');
+    if (producto.stock < cantidad) throw new BadRequestException('Stock insuficiente');
 
     producto.stock -= cantidad;
     return await repo.save(producto);

@@ -1,14 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
 import { OrdenItemEntity } from './orden-item.entity';
-import { CarritoEntity } from 'src/carrito/entities/carrito.entity';
+import { OrdenStatus } from '../orden-status.enum';
 
 @Entity('ordenes')
 export class OrdenEntity {
@@ -18,21 +10,16 @@ export class OrdenEntity {
   @Column()
   compradorId: string;
 
-  @Column()
+  @Column({ type: 'float' })
   total: number;
 
-  @Column()
-  estadoPago: string;
-
-  @ManyToOne(() => CarritoEntity, (carrito) => carrito.ordenes)
-  carrito: CarritoEntity;
-
-  @OneToMany(() => OrdenItemEntity, (item) => item.orden, { cascade: true })
-  items: OrdenItemEntity[];
+  @Column({ type: 'enum', enum: OrdenStatus, default: OrdenStatus.PENDIENTE })
+  estadoPago: OrdenStatus;
 
   @CreateDateColumn()
   fecha: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  // Usamos "items" (coherente con orden-item.entity.ts)
+  @OneToMany(() => OrdenItemEntity, (item) => item.orden, { cascade: true, eager: true })
+  items: OrdenItemEntity[];
 }

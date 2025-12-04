@@ -13,12 +13,14 @@ export class OrdenItemEntity {
   @Column()
   cantidad: number;
 
-  @Column()
+  @Column({ type: 'float' })
   precio: number;
 
-  @ManyToOne(() => OrdenEntity, (orden) => orden.items)
+  // Inversa correcta: (orden) => orden.items
+  @ManyToOne(() => OrdenEntity, (orden) => orden.items, { onDelete: 'CASCADE' })
   orden: OrdenEntity;
 
-  @ManyToOne(() => ProductoEntity, (producto) => producto.items)
+  // Relación opcional con el producto (solo para obtener datos si hace falta)
+  @ManyToOne(() => ProductoEntity, (producto) => producto.ordenes, { nullable: true })
   producto: ProductoEntity;
 }
