@@ -16,8 +16,7 @@ import { CreateOrdenResponseDto } from './dto/create-orden-response.dto';
 export class OrdenesController {
   constructor(private readonly ordenesService: OrdenesService) {}
 
-  // Mantener la ruta tal como la tienes: POST /ordenes/:compradorId
-  // El body (CreateOrdenDto) es opcional; se acepta si quieres pasar direccion/nombre/total.
+  // POST /ordenes/:compradorId
   @Post(':compradorId')
   @HttpCode(201)
   async crear(
@@ -25,22 +24,23 @@ export class OrdenesController {
     @Body() createOrdenDto?: CreateOrdenDto,
   ): Promise<CreateOrdenResponseDto> {
     try {
+      // Llamar al método correcto del servicio
       return await this.ordenesService.crearOrdenDesdeCarrito(
         compradorId,
         createOrdenDto,
       );
     } catch (err: any) {
-      // err.status puede venir de excepciones de Nest; si no, 500
       throw new HttpException(err.message || 'Error interno', err.status || 500);
     }
   }
 
-  // Endpoints auxiliares ya existentes: GET orden por id y por comprador
+  // GET orden por id
   @Get(':ordenId')
   async obtener(@Param('ordenId', ParseIntPipe) ordenId: number) {
     return this.ordenesService.obtenerOrden(ordenId);
   }
 
+  // GET ordenes por comprador
   @Get('comprador/:compradorId')
   async obtenerPorComprador(@Param('compradorId') compradorId: string) {
     return this.ordenesService.obtenerOrdenesPorComprador(compradorId);

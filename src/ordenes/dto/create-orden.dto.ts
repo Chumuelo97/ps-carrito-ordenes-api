@@ -1,19 +1,24 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty, IsArray } from 'class-validator';
+// create-orden.dto.ts
+import { IsNotEmpty, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateOrdenDto {
-  @IsString()
-  @IsNotEmpty()
-  nombreCliente: string;
-
-  @IsString()
-  @IsOptional()
-  direccion?: string;
+class OrdenItemDto {
+  @IsNumber()
+  productoId: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  cantidad: number;
+
+  @IsNumber()
+  precio: number;
+}
+
+export class CreateOrdenDto {
+  @IsNumber()
   total: number;
 
   @IsArray()
-  @IsOptional()
-  productos?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => OrdenItemDto)
+  items: OrdenItemDto[];
 }
