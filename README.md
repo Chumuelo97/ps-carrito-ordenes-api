@@ -1,3 +1,48 @@
+# 🐳 API Carrito y Órdenes - NestJS con MySQL
+
+Esta aplicación es un microservicio NestJS que maneja carritos de compra y órdenes, con base de datos MySQL.
+
+## 🚀 Inicio Rápido con Docker (Recomendado)
+
+La forma más fácil de ejecutar esta aplicación es usando Docker:
+
+```bash
+# Clonar el repositorio
+git clone <url-del-repositorio>
+cd ps-carrito-ordenes-api
+
+# Ejecutar con Docker Compose
+docker-compose up --build
+
+# La API estará disponible en: http://localhost:4010/api/v1/
+```
+
+### 🧪 Cargar Datos de Prueba
+```bash
+# Insertar datos de ejemplo para testing
+./cargar-datos-prueba.sh
+
+# Probar la API con ejemplos
+./ejemplos-api.sh
+```
+
+📖 **[Ver Guía Completa de Docker →](README-DOCKER.md)**
+
+## 🛠️ Instalación Manual (Alternativa)
+
+Si prefieres ejecutar la aplicación sin Docker:
+
+```bash
+# Instalar dependencias
+pnpm install
+
+# Configurar variables de entorno (crear .env)
+# Configurar base de datos MySQL manualmente
+
+# Ejecutar en desarrollo
+pnpm start:dev
+```
+
 # 📦 Diagrama de secuencias
 
 <img width="1739" height="1791" alt="diagrama de secuencia ordenes y carrito" src="https://github.com/user-attachments/assets/a462deed-7ecf-49c2-85e3-c8c348439d3b" />
@@ -122,42 +167,42 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## 🐳 Docker Deployment (Recomendado)
+
+Esta aplicación incluye configuración completa de Docker para desarrollo y producción:
+
+### Inicio Rápido
+```bash
+# Ejecutar toda la aplicación (Backend + MySQL)
+docker-compose up --build
+
+# Ejecutar en segundo plano
+docker-compose up --build -d
+
+# Ver logs
+docker-compose logs -f
+```
+
+### Servicios Disponibles
+- **API Backend**: http://localhost:4010/api/v1/
+- **MySQL**: localhost:3307 (root/rootpassword)
+
+### Comandos Útiles
+```bash
+# Detener servicios
+docker-compose down
+
+# Reconstruir solo el backend
+docker-compose up --build backend_carro_ordenes
+
+# Conectar a MySQL
+mysql -h 127.0.0.1 -P 3307 -u root -prootpassword ps_carrito_db
+```
+
+📖 **[Ver Guía Completa de Docker →](README-DOCKER.md)**
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
 If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

@@ -1,0 +1,49 @@
+# --- GRUPO 5: Carrito y Órdenes ---
+services:
+  # Base de datos MySQL
+  db_sql:
+    image: mysql:8.0
+    container_name: mysql_grupo5
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=ps_carrito_db  # Coincide con script/init_db.sql
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=app_password
+    volumes:
+      - ./script/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"  # Puerto externo diferente para evitar conflictos con MySQL local
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+  # Backend (NestJS)
+  backend_carro_ordenes:
+    build: .
+    container_name: backend_grupo5
+    environment:
+      - PORT=4010              # Forzamos a NestJS a escuchar en el puerto interno 4010
+      - DB_HOST=db_sql         # Base de datos compartida del template
+      - DB_PORT=3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=rootpassword
+      - DB_DATABASE=ps_carrito_db  # Coincide con script/init_db.sql
+    ports:
+      - "4010:4010"            # Exponemos puerto 4010 hacia afuera
+    depends_on:
+      db_sql:
+        condition: service_healthy
+    networks:
+      - appnet
+
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
