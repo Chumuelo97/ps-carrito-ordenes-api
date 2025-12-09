@@ -1,45 +1,85 @@
-# --- GRUPO 5: Carrito y Órdenes ---
+version: "3.9"
+
 services:
+  # --------------------------------------------
   # Base de datos MySQL
+  # --------------------------------------------
   db_sql:
     image: mysql:8.0
     container_name: mysql_grupo5
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=ps_carrito_db  # Coincide con script/init_db.sql
+      - MYSQL_DATABASE=ps_carrito_db
       - MYSQL_USER=app_user
       - MYSQL_PASSWORD=app_password
     volumes:
       - ./script/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
       - mysql_data:/var/lib/mysql
     ports:
-      - "3307:3306"  # Puerto externo diferente para evitar conflictos con MySQL local
+      - "3307:3306"
     networks:
       - appnet
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+
+  # --------------------------------------------
   # Backend (NestJS)
+  # --------------------------------------------
   backend_carro_ordenes:
     build: .
     container_name: backend_grupo5
     environment:
-      - PORT=4010              # Forzamos a NestJS a escuchar en el puerto interno 4010
-      - DB_HOST=db_sql         # Base de datos compartida del template
+      - PORT=4010
+      - DB_HOST=db_sql
       - DB_PORT=3306
       - DB_USERNAME=root
       - DB_PASSWORD=rootpassword
-      - DB_DATABASE=ps_carrito_db  # Coincide con script/init_db.sql
+      - DB_DATABASE=ps_carrito_db
+      - INVENTORY_API_URL=https://jsonplaceholder.typicode.com/posts
     ports:
-      - "4010:4010"            # Exponemos puerto 4010 hacia afuera
+      - "4010:4010"
     depends_on:
       db_sql:
         condition: service_healthy
     networks:
       - appnet
 
+  # --------------------------------------------
+  # Frontend (Next.js)
+  # --------------------------------------------
+  frontend_carro_ordenes:
+    build: ../pulga-shop-frontend
+    container_name: frontend_grupo5
+    environment:
+      - NEXT_PUBLIC_API_URL=/api/v1
+    ports:
+      - "6969:6969"
+    depends_on:
+      - backend_carro_ordenes
+    networks:
+      - appnet
 
+  # --------------------------------------------
+  # NGINX Reverse Proxy
+  # --------------------------------------------
+  nginx:
+    image: nginx:1.25
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.config:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend_carro_ordenes
+      - backend_carro_ordenes
+    networks:
+      - appnet
+
+# --------------------------------------------
+# Redes y Volúmenes
+# --------------------------------------------
 networks:
   appnet:
     driver: bridge
