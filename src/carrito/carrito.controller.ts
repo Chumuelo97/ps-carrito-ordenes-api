@@ -32,8 +32,10 @@ export class CarritoController {
     @Query('take') take?: string,
     @Query('order') order?: string,
   ) {
-    const pageNum = page && !Number.isNaN(Number(page)) ? parseInt(page, 10) : 1;
-    const takeNum = take && !Number.isNaN(Number(take)) ? parseInt(take, 10) : 10;
+    const pageNum =
+      page && !Number.isNaN(Number(page)) ? parseInt(page, 10) : 1;
+    const takeNum =
+      take && !Number.isNaN(Number(take)) ? parseInt(take, 10) : 10;
     const orderStr = order && order.toLowerCase() === 'desc' ? 'desc' : 'asc';
     return this.carritoService.obtenerProductosExternos({
       page: pageNum,
@@ -55,17 +57,19 @@ export class CarritoController {
     return this.carritoService.crearCarrito(crearCarritoDto);
   }
 
-  @Delete('eliminarCarrito')
-  @ApiOperation({ summary: 'Eliminar un producto del carrito de un comprador' })
+  @Delete('eliminarCarrito/:id')
+  @ApiOperation({ summary: 'Eliminar un carrito por ID' })
   @ApiResponse({
     status: 200,
-    description: 'Producto eliminado exitosamente del carrito',
+    description: 'Carrito eliminado exitosamente por ID',
     type: CarritoDetalladoDto,
   })
-  async eliminarCarrito(
-    @Body() eliminarcarritoDto: EliminarCarritoDto,
+  async eliminarCarritoPorId(
+    @Param('id') id: string,
   ): Promise<CarritoDetalladoDto> {
-    return this.carritoService.eliminarCarrito(eliminarcarritoDto);
+    return this.carritoService.eliminarCarrito({
+      carritoId: +id,
+    } as EliminarCarritoDto);
   }
 
   @Get('obtenerCarritos')

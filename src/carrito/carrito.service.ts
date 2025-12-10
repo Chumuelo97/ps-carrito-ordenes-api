@@ -45,7 +45,63 @@ export class CarritoService {
     if (token) headers.Authorization = `Bearer ${token}`;
     return { base: baseUrl.replace(/\/$/, ''), headers };
   }
+  // En carrito.service.ts
+  async obtenerProductosExternos(filtros?: any): Promise<ProductoDto[]> {
+    try {
+      // --- INICIO DEL TRY ---
 
+      // 1. Validar variables de entorno
+      const urlBase = this.configService.get<string>('INVENTORY_API_URL');
+      const token = this.configService.get<string>('INVENTORY_API_TOKEN');
+
+      if (!urlBase || !token) {
+        throw new Error('Faltan credenciales (URL o Token) en el .env');
+      }
+
+      // 2. Preparar petición
+      const config = {
+        params: filtros,
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      const endpoint = urlBase.endsWith('/productos')
+        ? urlBase
+        : `${urlBase}/productos`;
+
+      // 3. Llamada a la API (Esto puede fallar, por eso está en el try)
+      const { data: respuestaApi } = await firstValueFrom(
+        this.httpService.get(endpoint, config),
+      );
+
+      // 4. Extracción de datos
+      // Según tu JSON, la lista real está dentro de una propiedad "data"
+      const listaCruda = respuestaApi.data || [];
+
+      if (!Array.isArray(listaCruda)) {
+        return [];
+      }
+
+      // 5. Mapeo (Transformación de datos)
+      return listaCruda.map((item: any) => ({
+        id: item.id_producto,
+        name: item.nombre,
+        description: item.descripcion || 'Sin descripción',
+        price: Number(item.costo), // Usamos 'costo' porque tu JSON no trae 'precio'
+        quantity: Number(item.stock),
+        category: item.categoria,
+        imageUrl: item.foto_referencia || '',
+      }));
+
+      // --- FIN DEL TRY ---
+    } catch (error) {
+      // --- INICIO DEL CATCH ---
+      this.logger.error(
+        `Error obteniendo productos externos: ${error.message}`,
+      );
+      return []; // Retornamos array vacío para no romper el frontend
+      // --- FIN DEL CATCH ---
+    }
+  }
   private async obtenerProductoExternoPorSku(sku: string) {
     const { base, headers } = this.buildBase();
     const path = (
@@ -88,23 +144,36 @@ export class CarritoService {
   }
 
   // 1. Actualiza la firma para aceptar parámetros (puedes usar 'any' o una interfaz)
-  async obtenerProductosExternos(filtros?: {
+  /*async obtenerProductosExternos(filtros?: {
     page?: number;
     take?: number;
     order?: string;
     term?: string;
   }): Promise<ProductoDto[]> {
     try {
-      const url = this.configService.get<string>('INVENTORY_API_URL');
-      if (!url) throw new Error('INVENTORY_API_URL no definida');
+      const url = this.configService.get<string>('INVENTORY_API_URL')?.trim();
+      const token = this.configService
+        .get<string>('INVENTORY_API_TOKEN')
+        ?.trim();
 
-      // Petición GET con filtros
+      if (!url) throw new Error('INVENTORY_API_URL no definida en .env');
+
+      // CONFIGURACIÓN DE CABECERAS (Esto faltaba)
+      const config = {
+        params: filtros,
+        headers: {
+          // Si el otro backend pide 'Bearer', úsalo así.
+          // Si pide 'x-token', cambia 'Authorization' por 'x-token'.
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      // Petición GET con headers y filtros
       const { data: respuestaApi } = await firstValueFrom(
-        this.httpService.get(url, { params: filtros }),
+        this.httpService.get(url + '/products', config), // Asegúrate de apuntar al endpoint correcto (ej: /products)
       );
 
-      // CORRECCIÓN 1: Acceder a .data porque la respuesta es paginada
-      // Si la respuesta tiene propiedad 'data', usamos esa. Si es un array directo, lo usamos.
+      // Verificación de respuesta
       const listaProductos = Array.isArray(respuestaApi)
         ? respuestaApi
         : respuestaApi.data || [];
@@ -114,25 +183,25 @@ export class CarritoService {
         return [];
       }
 
-      // CORRECCIÓN 2: Mapeo correcto según tu Swagger (campos en español)
+      // Mapeo de datos (Asegúrate que 'prodExterno.xxxx' coincida con lo que imprime tu console.log si pruebas)
       return listaProductos.map((prodExterno: any) => ({
-        id: prodExterno.id_producto, // Swagger: id_producto
-        name: prodExterno.nombre, // Swagger: nombre
-        description: prodExterno.descripcion || 'Sin descripción',
-        price: Number(prodExterno.precio), // Swagger: precio
-        quantity: Number(prodExterno.stock), // Swagger: stock
-        category: prodExterno.categoria || 'General',
-        // Swagger no menciona imagen, dejamos un placeholder o string vacío
-        imageUrl: prodExterno.imagen || '',
+        id: prodExterno.id, // A veces es .id, a veces ._id o .id_producto
+        name: prodExterno.name || prodExterno.nombre,
+        description: prodExterno.description || 'Sin descripción',
+        price: Number(prodExterno.price || prodExterno.precio),
+        quantity: Number(prodExterno.stock),
+        category: prodExterno.category || 'General',
+        imageUrl: prodExterno.image || '',
       }));
     } catch (error) {
+      // Tip: Imprime error.response.data para ver qué te dice el otro servidor
       this.logger.error(
         `Error al obtener productos externos: ${error.message}`,
-        error.stack,
+        error.response?.data,
       );
       return [];
     }
-  }
+  }*/
 
   /*
    * Este método se encarga de "hidratar" el carrito.
@@ -282,7 +351,6 @@ export class CarritoService {
   async eliminarCarrito(
     eliminarCarritoDto: EliminarCarritoDto,
   ): Promise<CarritoDetalladoDto> {
-    // ... (tu código actual)
     const { compradorId, carritoId } = eliminarCarritoDto as any;
     let carrito: CarritoEntity | null = null;
     if (carritoId) {

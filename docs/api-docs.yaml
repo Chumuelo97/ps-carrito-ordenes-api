@@ -1,25 +1,25 @@
-﻿openapi: 3.0.3
+openapi: 3.0.3
 info:
   title: API de Carrito y Órdenes
   version: 1.0.0
-  description: Microservicio NestJS para gestionar carritos de compra y órdenes en PulgaShop.
+  description: Microservicio NestJS para gestionar carritos de compra y órdenes en PulgaShop
   contact:
     name: Equipo PulgaShop
 servers:
-  - url: http://localhost:3000/api/v1
-    description: Local (development)
+  - url: http://localhost:4000/api/v1
+    description: Local
   - url: https://pulga-shop-carrito-ordenes-api.onrender.com/api/v1
-    description: Cloud (staging)
+    description: Production
 tags:
   - name: Carrito
-    description: Endpoints para crear, modificar y consultar carritos
+    description: Endpoints de carrito
   - name: Órdenes
-    description: Endpoints para crear, modificar y consultar órdenes de compra
+    description: Endpoints de órdenes
 paths:
   /carrito/crearCarrito:
     post:
       tags: [Carrito]
-      summary: Crear un carrito para un comprador
+      summary: Crear carrito
       requestBody:
         required: true
         content:
@@ -28,49 +28,29 @@ paths:
               $ref: '#/components/schemas/CrearCarritoRequest'
       responses:
         '201':
-          description: Carrito creado exitosamente
+          description: Carrito creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
   /carrito/productos:
     get:
       tags: [Carrito]
-      summary: Listar productos desde inventario externo
+      summary: Listar productos
       parameters:
         - name: page
           in: query
           schema:
             type: integer
+            default: 1
         - name: take
           in: query
           schema:
             type: integer
+            default: 20
       responses:
         '200':
-          description: Lista de productos
-  /carrito/eliminarCarrito:
-    delete:
-      tags: [Carrito]
-      summary: Eliminar un carrito por compradorId
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EliminarCarritoRequest'
-      responses:
-        '200':
-          description: Carrito eliminado
-  /carrito/eliminarCarrito/{id}:
-    delete:
-      tags: [Carrito]
-      summary: Eliminar un carrito por ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Carrito eliminado
+          description: Productos obtenidos
   /carrito/obtenerCarritos:
     get:
       tags: [Carrito]
@@ -78,10 +58,16 @@ paths:
       responses:
         '200':
           description: Lista de carritos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarritoDetallado'
   /carrito/obtenerCarro/{id}:
     get:
       tags: [Carrito]
-      summary: Obtener un carrito por ID
+      summary: Obtener carrito por ID
       parameters:
         - name: id
           in: path
@@ -91,10 +77,14 @@ paths:
       responses:
         '200':
           description: Carrito encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
   /carrito/agregarProductos:
     post:
       tags: [Carrito]
-      summary: Agregar un producto en el carrito
+      summary: Agregar producto al carrito
       requestBody:
         required: true
         content:
@@ -104,10 +94,14 @@ paths:
       responses:
         '201':
           description: Producto agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
   /carrito/eliminarProducto:
     delete:
       tags: [Carrito]
-      summary: Eliminar o decrementar un producto del carrito
+      summary: Eliminar producto del carrito
       requestBody:
         required: true
         content:
@@ -117,10 +111,48 @@ paths:
       responses:
         '200':
           description: Producto eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
+  /carrito/eliminarCarrito:
+    delete:
+      tags: [Carrito]
+      summary: Eliminar carrito por compradorId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminarCarritoRequest'
+      responses:
+        '200':
+          description: Carrito eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
+  /carrito/eliminarCarrito/{id}:
+    delete:
+      tags: [Carrito]
+      summary: Eliminar carrito por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Carrito eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarritoDetallado'
   /ordenes/checkout/{carritoId}:
     post:
       tags: [Órdenes]
-      summary: Realizar checkout de un carrito y crear orden
+      summary: Crear orden (checkout)
       parameters:
         - name: carritoId
           in: path
@@ -130,10 +162,14 @@ paths:
       responses:
         '201':
           description: Orden creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdenCheckoutResponse'
   /ordenes/estado-pago/{carritoId}:
     get:
       tags: [Órdenes]
-      summary: Obtener estado de pago de una orden
+      summary: Obtener estado de pago
       parameters:
         - name: carritoId
           in: path
@@ -143,6 +179,10 @@ paths:
       responses:
         '200':
           description: Estado de pago
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoPagoResponse'
   /ordenes/historial/{compradorId}:
     get:
       tags: [Órdenes]
@@ -155,11 +195,17 @@ paths:
             type: string
       responses:
         '200':
-          description: Historial de órdenes
+          description: Historial obtenido
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrdenConItems'
   /ordenes/estadisticas/producto/{productoId}:
     get:
       tags: [Órdenes]
-      summary: Obtener estadísticas de un producto
+      summary: Obtener estadísticas de producto
       parameters:
         - name: productoId
           in: path
@@ -169,10 +215,14 @@ paths:
       responses:
         '200':
           description: Estadísticas obtenidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadisticasProductoResponse'
   /ordenes/actualizarCheckout/{ordenId}:
     put:
       tags: [Órdenes]
-      summary: Actualizar orden durante el checkout
+      summary: Actualizar orden
       parameters:
         - name: ordenId
           in: path
@@ -188,6 +238,10 @@ paths:
       responses:
         '200':
           description: Orden actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdenCheckoutResponse'
 components:
   schemas:
     Error:
@@ -235,6 +289,46 @@ components:
       required:
         - compradorId
         - cantidad
+    CarritoDetallado:
+      type: object
+      properties:
+        id:
+          type: integer
+        compradorId:
+          type: string
+        total:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+    OrdenCheckoutResponse:
+      type: object
+      properties:
+        orden:
+          type: object
+        items:
+          type: array
+        total:
+          type: number
+    EstadoPagoResponse:
+      type: object
+      properties:
+        ordenId:
+          type: integer
+        estadoPago:
+          type: string
+        total:
+          type: number
+    OrdenConItems:
+      type: object
+      properties:
+        orden:
+          type: object
+        items:
+          type: array
+        total:
+          type: number
     ActualizarCheckoutRequest:
       type: object
       properties:
@@ -242,3 +336,10 @@ components:
           type: array
       required:
         - items
+    EstadisticasProductoResponse:
+      type: object
+      properties:
+        vecesComprado:
+          type: integer
+        vecesCancelado:
+          type: integer
